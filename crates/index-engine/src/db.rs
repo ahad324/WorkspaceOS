@@ -37,9 +37,9 @@ impl IndexDb {
         let conn = Connection::open(db_path)?;
 
         // Enable WAL mode, Foreign Keys and normal synchronous writing for maximum safety & speed
-        conn.execute("PRAGMA journal_mode = WAL;", [])?;
-        conn.execute("PRAGMA foreign_keys = ON;", [])?;
-        conn.execute("PRAGMA synchronous = NORMAL;", [])?;
+        conn.pragma_update(None, "journal_mode", "WAL")?;
+        conn.pragma_update(None, "foreign_keys", "ON")?;
+        conn.pragma_update(None, "synchronous", "NORMAL")?;
 
         let db = Self {
             conn: Mutex::new(conn),
@@ -121,11 +121,20 @@ impl IndexDb {
     ) -> Result<i64> {
         let conn = self.conn.lock().unwrap();
         conn.execute(
-            "INSERT OR REPLACE INTO files (path, size, mtime, hash, language)
-             VALUES (?1, ?2, ?3, ?4, ?5);",
+            "INSERT INTO files (path, size, mtime, hash, language)
+             VALUES (?1, ?2, ?3, ?4, ?5)
+             ON CONFLICT(path) DO UPDATE SET
+                 size = excluded.size,
+                 mtime = excluded.mtime,
+                 hash = excluded.hash,
+                 language = excluded.language;",
             params![path, size as i64, mtime as i64, hash, language],
         )?;
-        Ok(conn.last_insert_rowid())
+
+        let id: i64 = conn.query_row("SELECT id FROM files WHERE path = ?1;", [path], |row| {
+            row.get(0)
+        })?;
+        Ok(id)
     }
 
     pub fn delete_file(&self, path: &str) -> Result<()> {

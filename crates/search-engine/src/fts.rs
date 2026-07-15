@@ -2,7 +2,7 @@ use std::path::Path;
 use std::sync::{Arc, Mutex};
 use tantivy::collector::TopDocs;
 use tantivy::query::QueryParser;
-use tantivy::schema::{Schema, Value, STORED, TEXT};
+use tantivy::schema::{Schema, Value, STORED, STRING, TEXT};
 use tantivy::{Index, IndexReader, IndexWriter, ReloadPolicy, TantivyDocument};
 
 pub struct TantivyIndex {
@@ -17,8 +17,8 @@ impl TantivyIndex {
         std::fs::create_dir_all(index_dir).map_err(|e| e.to_string())?;
 
         let mut schema_builder = Schema::builder();
-        schema_builder.add_text_field("path", STORED | TEXT);
-        schema_builder.add_text_field("body", TEXT);
+        schema_builder.add_text_field("path", STORED | STRING);
+        schema_builder.add_text_field("body", STORED | TEXT);
         let schema = schema_builder.build();
 
         let index = Index::open_or_create(
@@ -56,6 +56,7 @@ impl TantivyIndex {
         writer.add_document(doc).map_err(|e| e.to_string())?;
 
         writer.commit().map_err(|e| e.to_string())?;
+        let _ = self.reader.reload();
         Ok(())
     }
 
@@ -65,10 +66,12 @@ impl TantivyIndex {
         let term = tantivy::Term::from_field_text(path_field, relative_path);
         writer.delete_term(term);
         writer.commit().map_err(|e| e.to_string())?;
+        let _ = self.reader.reload();
         Ok(())
     }
 
     pub fn search(&self, query_str: &str) -> Result<Vec<(String, usize, String)>, String> {
+        let _ = self.reader.reload();
         let searcher = self.reader.searcher();
         let body_field = self.schema.get_field("body").unwrap();
         let path_field = self.schema.get_field("path").unwrap();

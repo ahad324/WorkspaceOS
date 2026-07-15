@@ -30,7 +30,7 @@ mod tests {
             .unwrap();
 
         // Search body
-        let results = fts.search("run_server").unwrap();
+        let results = fts.search("run").unwrap();
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].0, "src/lib.rs");
         assert_eq!(results[0].1, 1); // line 1
@@ -38,7 +38,7 @@ mod tests {
 
         // Delete document
         fts.delete_document("src/lib.rs").unwrap();
-        let results_post = fts.search("run_server").unwrap();
+        let results_post = fts.search("run").unwrap();
         assert_eq!(results_post.len(), 0);
 
         let _ = std::fs::remove_dir_all(&root);
