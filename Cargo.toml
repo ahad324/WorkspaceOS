@@ -17,7 +17,7 @@ notify = "6.1.1"
 notify-debouncer-full = "0.3.1"
 tree-sitter = "0.22.6"
 tantivy = "0.22.0"
-moka = { version = "0.12.8", features = ["future"] }
+moka = { version = "0.12.8", features = ["sync", "future"] }
 lru = "0.12.5"
 criterion = { version = "0.5.1", features = ["html_reports"] }
 tracing = "0.1.41"
