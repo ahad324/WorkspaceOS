@@ -6,7 +6,9 @@ export default function WorkspacesView() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">Workspaces</h2>
-          <p className="text-sm text-text-secondary">Register and configure local code directories.</p>
+          <p className="text-sm text-text-secondary">
+            Register and configure local code directories.
+          </p>
         </div>
         <button className="bg-accent-primary hover:bg-accent-hover text-white text-xs font-semibold py-2 px-4 rounded-lg transition duration-150">
           Register Workspace
@@ -27,7 +29,9 @@ export default function WorkspacesView() {
           <tbody className="text-sm divide-y divide-border-subtle">
             <tr>
               <td className="px-6 py-4 font-semibold">WorkspaceOS (Current)</td>
-              <td className="px-6 py-4 font-mono text-xs text-text-muted">G:\Ahad\DesktopApps\WorkspaceOS</td>
+              <td className="px-6 py-4 font-mono text-xs text-text-muted">
+                G:\Ahad\DesktopApps\WorkspaceOS
+              </td>
               <td className="px-6 py-4">
                 <span className="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-success-main/10 text-success-main">
                   <CheckCircle2 className="w-3 h-3" />
@@ -36,7 +40,9 @@ export default function WorkspacesView() {
               </td>
               <td className="px-6 py-4 text-xs text-text-muted">All Allowed</td>
               <td className="px-6 py-4 text-right">
-                <button className="text-xs text-accent-primary hover:text-accent-hover font-semibold">Configure</button>
+                <button className="text-xs text-accent-primary hover:text-accent-hover font-semibold">
+                  Configure
+                </button>
               </td>
             </tr>
           </tbody>

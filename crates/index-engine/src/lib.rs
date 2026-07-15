@@ -2,8 +2,8 @@
 //!
 //! Handles incremental indexing, metadata parsing using Tree-sitter, and persistence using SQLite.
 
-use std::path::Path;
 use blake3::Hasher;
+use std::path::Path;
 
 pub struct Indexer;
 

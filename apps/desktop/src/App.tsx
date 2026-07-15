@@ -17,11 +17,7 @@ export default function App() {
   return (
     <div className="flex h-screen w-screen bg-bg-app text-text-primary overflow-hidden font-sans select-none">
       {/* Navigation Sidebar */}
-      <Sidebar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        isMcpRunning={isMcpRunning} 
-      />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isMcpRunning={isMcpRunning} />
 
       {/* Main content viewport */}
       <main className="flex-1 flex flex-col min-w-0 bg-bg-app relative">
@@ -38,17 +34,11 @@ export default function App() {
               className="h-full"
             >
               {activeTab === 'dashboard' && (
-                <DashboardView 
-                  isMcpRunning={isMcpRunning} 
-                  setIsMcpRunning={setIsMcpRunning} 
-                />
+                <DashboardView isMcpRunning={isMcpRunning} setIsMcpRunning={setIsMcpRunning} />
               )}
               {activeTab === 'workspaces' && <WorkspacesView />}
               {activeTab === 'mcp' && (
-                <McpView 
-                  isMcpRunning={isMcpRunning} 
-                  setIsMcpRunning={setIsMcpRunning} 
-                />
+                <McpView isMcpRunning={isMcpRunning} setIsMcpRunning={setIsMcpRunning} />
               )}
               {activeTab === 'settings' && <SettingsView />}
               {activeTab === 'logs' && <LogsView />}

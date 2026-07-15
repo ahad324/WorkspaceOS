@@ -8,9 +8,9 @@ fn get_runtime_status() -> String {
 fn main() {
     // Basic verification of engine linkages
     let _ws = workspace_engine::Workspace::new(
-        "workspace-0".to_string(), 
-        "WorkspaceOS".to_string(), 
-        std::path::PathBuf::from(".")
+        "workspace-0".to_string(),
+        "WorkspaceOS".to_string(),
+        std::path::PathBuf::from("."),
     );
     let _eval = security_engine::SecurityEvaluator;
 

@@ -3,12 +3,16 @@ export default function SettingsView() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">System Settings</h2>
-        <p className="text-sm text-text-secondary">Configure WorkspaceOS global constraints and profiles.</p>
+        <p className="text-sm text-text-secondary">
+          Configure WorkspaceOS global constraints and profiles.
+        </p>
       </div>
 
       <div className="bg-surface-primary border border-border-subtle rounded-xl p-6 max-w-2xl space-y-6 shadow-sm">
         <div className="space-y-4">
-          <h3 className="text-base font-semibold border-b border-border-subtle pb-2">Performance Profile</h3>
+          <h3 className="text-base font-semibold border-b border-border-subtle pb-2">
+            Performance Profile
+          </h3>
           <div className="grid grid-cols-4 gap-3">
             {['LOW', 'MID', 'HIGH', 'ULTRA'].map((profile) => (
               <button
@@ -32,13 +36,23 @@ export default function SettingsView() {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-semibold border-b border-border-subtle pb-2">Security Enforcement</h3>
+          <h3 className="text-base font-semibold border-b border-border-subtle pb-2">
+            Security Enforcement
+          </h3>
           <div className="flex items-center justify-between p-3 bg-bg-app rounded-lg border border-border-subtle">
             <div>
-              <span className="text-xs font-semibold text-text-primary">Confirm Dangerous Tools</span>
-              <p className="text-[10px] text-text-muted mt-0.5">Always prompt user confirmation before writing or modifying files.</p>
+              <span className="text-xs font-semibold text-text-primary">
+                Confirm Dangerous Tools
+              </span>
+              <p className="text-[10px] text-text-muted mt-0.5">
+                Always prompt user confirmation before writing or modifying files.
+              </p>
             </div>
-            <input type="checkbox" defaultChecked className="rounded border-border-subtle text-accent-primary focus:ring-accent-primary bg-surface-primary w-4 h-4" />
+            <input
+              type="checkbox"
+              defaultChecked
+              className="rounded border-border-subtle text-accent-primary focus:ring-accent-primary bg-surface-primary w-4 h-4"
+            />
           </div>
         </div>
       </div>

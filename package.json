@@ -3,10 +3,19 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "dev:desktop": "pnpm --filter desktop dev",
-    "build:desktop": "pnpm --filter desktop build",
+    "dev": "pnpm dev:tauri",
+    "dev:web": "pnpm --filter desktop dev",
+    "dev:tauri": "pnpm --filter desktop tauri dev",
+    "build": "pnpm build:web && pnpm build:rust",
+    "build:web": "pnpm --filter desktop build",
+    "build:rust": "cargo build --workspace",
+    "build:tauri": "pnpm --filter desktop tauri build",
+    "lint": "pnpm lint:web && pnpm lint:rust",
     "lint:web": "pnpm --filter desktop lint",
-    "format:web": "pnpm --filter desktop format"
+    "lint:rust": "cargo clippy --all-targets -- -D warnings",
+    "format": "pnpm format:web && pnpm format:rust",
+    "format:web": "pnpm --filter desktop format",
+    "format:rust": "cargo fmt --all"
   },
   "devDependencies": {
     "typescript": "^5.5.0",

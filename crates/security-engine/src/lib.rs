@@ -2,7 +2,7 @@
 //!
 //! Enforces authentication, authorization, and capability evaluation before execution.
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use workspace_engine::Workspace;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -24,7 +24,11 @@ pub enum Capability {
 pub struct SecurityEvaluator;
 
 impl SecurityEvaluator {
-    pub fn authorize(workspace: &Workspace, capability: &Capability, required_caps: &[Capability]) -> bool {
+    pub fn authorize(
+        _workspace: &Workspace,
+        capability: &Capability,
+        required_caps: &[Capability],
+    ) -> bool {
         required_caps.contains(capability)
     }
 }

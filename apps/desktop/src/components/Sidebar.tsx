@@ -1,10 +1,10 @@
-import { 
-  LayoutDashboard, 
-  FolderGit2, 
-  Cpu, 
-  Sliders, 
-  Terminal as TerminalIcon, 
-  Info 
+import {
+  LayoutDashboard,
+  FolderGit2,
+  Cpu,
+  Sliders,
+  Terminal as TerminalIcon,
+  Info,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Tab } from '../types';
@@ -49,19 +49,21 @@ export default function Sidebar({ activeTab, setActiveTab, isMcpRunning }: Sideb
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 relative ${
-                  isActive 
-                    ? 'text-text-primary font-medium bg-surface-secondary' 
+                  isActive
+                    ? 'text-text-primary font-medium bg-surface-secondary'
                     : 'text-text-secondary hover:text-text-primary hover:bg-surface-secondary/50'
                 }`}
               >
                 {isActive && (
-                  <motion.div 
+                  <motion.div
                     layoutId="active-sidebar"
                     className="absolute left-0 w-1 h-5 rounded-r bg-accent-primary"
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
-                <Icon className={`w-4 h-4 ${isActive ? 'text-accent-primary' : 'text-text-muted'}`} />
+                <Icon
+                  className={`w-4 h-4 ${isActive ? 'text-accent-primary' : 'text-text-muted'}`}
+                />
                 <span>{item.label}</span>
               </button>
             );
@@ -74,7 +76,9 @@ export default function Sidebar({ activeTab, setActiveTab, isMcpRunning }: Sideb
         <div className="flex items-center justify-between text-xs text-text-muted">
           <span>Status</span>
           <div className="flex items-center space-x-1.5">
-            <span className={`w-2 h-2 rounded-full ${isMcpRunning ? 'bg-success-main animate-pulse' : 'bg-danger-main'}`} />
+            <span
+              className={`w-2 h-2 rounded-full ${isMcpRunning ? 'bg-success-main animate-pulse' : 'bg-danger-main'}`}
+            />
             <span>{isMcpRunning ? 'Online' : 'Offline'}</span>
           </div>
         </div>

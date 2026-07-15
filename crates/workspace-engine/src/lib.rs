@@ -2,8 +2,8 @@
 //!
 //! Responsible for workspace lifecycle, registration, validation, state, and isolation boundaries.
 
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
-use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Workspace {
