@@ -1,0 +1,16 @@
+{
+  "name": "workspaceos-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev:desktop": "pnpm --filter desktop dev",
+    "build:desktop": "pnpm --filter desktop build",
+    "lint:web": "pnpm --filter desktop lint",
+    "format:web": "pnpm --filter desktop format"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "prettier": "^3.3.0",
+    "eslint": "^9.0.0"
+  }
+}

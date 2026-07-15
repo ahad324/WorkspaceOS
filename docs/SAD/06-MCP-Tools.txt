@@ -1,0 +1,747 @@
+````text
+WorkspaceOS/docs/SAD/06-MCP-Tools.txt
+
+====================================================================
+WorkspaceOS
+Software Architecture Document (SAD)
+
+Document ID      : SAD-006
+Document Name    : MCP Layer & Tool System
+Version          : 1.0.0
+Status           : Draft
+Owner            : WorkspaceOS
+Classification   : Public
+====================================================================
+
+# IMPORTANT NOTE
+
+This document intentionally focuses on architecture rather than the
+current implementation details of any specific MCP SDK.
+
+WorkspaceOS SHALL follow the official Model Context Protocol (MCP)
+specification wherever practical while keeping the implementation
+provider-agnostic.
+
+If the official MCP specification evolves, WorkspaceOS SHALL adapt
+through compatibility layers instead of architectural rewrites.
+
+--------------------------------------------------------------------
+
+# 1. Purpose
+
+The MCP Layer is responsible for exposing WorkspaceOS capabilities to
+external AI systems.
+
+It acts as the protocol gateway between AI clients and the WorkspaceOS
+Core.
+
+The MCP Layer SHALL NEVER contain business logic.
+
+It SHALL only:
+
+• Validate requests
+• Discover tools
+• Execute tools
+• Stream responses
+• Handle protocol concerns
+• Forward requests to Core services
+
+--------------------------------------------------------------------
+
+# 2. Design Philosophy
+
+The MCP Layer SHALL be:
+
+Protocol Driven
+
+Stateless where practical
+
+High Performance
+
+Streaming Friendly
+
+Provider Independent
+
+Extensible
+
+Observable
+
+Secure
+
+Version Aware
+
+Every tool execution SHALL eventually terminate at the WorkspaceOS Core.
+
+--------------------------------------------------------------------
+
+# 3. Responsibilities
+
+The MCP Layer SHALL provide:
+
+Protocol implementation
+
+Tool discovery
+
+Tool registration
+
+Request routing
+
+Streaming
+
+Cancellation
+
+Authentication hooks
+
+Capability enforcement hooks
+
+Error serialization
+
+Version negotiation
+
+Session lifecycle
+
+Connection lifecycle
+
+--------------------------------------------------------------------
+
+# 4. Non Responsibilities
+
+The MCP Layer SHALL NOT:
+
+Manage workspaces
+
+Read files directly
+
+Access Git directly
+
+Execute terminal commands directly
+
+Generate context
+
+Index repositories
+
+Store secrets
+
+Authorize users
+
+Implement business logic
+
+Those responsibilities belong to the Core.
+
+--------------------------------------------------------------------
+
+# 5. Architectural Flow
+
+AI Client
+
+↓
+
+MCP Connection
+
+↓
+
+Authentication
+
+↓
+
+Workspace Resolution
+
+↓
+
+Capability Evaluation
+
+↓
+
+Tool Dispatcher
+
+↓
+
+Core Service
+
+↓
+
+Response
+
+↓
+
+Stream Result
+
+--------------------------------------------------------------------
+
+# 6. Tool Architecture
+
+Every MCP Tool SHALL contain:
+
+Unique Identifier
+
+Human-readable Name
+
+Description
+
+Category
+
+Input Schema
+
+Output Schema
+
+Capability Requirements
+
+Workspace Requirement
+
+Streaming Support
+
+Cancellation Support
+
+Version
+
+Deprecated Flag
+
+--------------------------------------------------------------------
+
+# 7. Tool Categories
+
+Workspace
+
+Filesystem
+
+Git
+
+Terminal
+
+Search
+
+Index
+
+Context
+
+Plugin
+
+Configuration
+
+Diagnostics
+
+Tunnel
+
+Future categories SHALL remain backward compatible.
+
+--------------------------------------------------------------------
+
+# 8. Tool Registration
+
+Every tool SHALL be registered through the Tool Registry.
+
+Startup
+
+↓
+
+Plugin Discovery
+
+↓
+
+Tool Discovery
+
+↓
+
+Schema Validation
+
+↓
+
+Conflict Detection
+
+↓
+
+Registration
+
+↓
+
+Ready
+
+Duplicate Tool IDs SHALL be rejected.
+
+--------------------------------------------------------------------
+
+# 9. Tool Registry
+
+The Tool Registry SHALL provide:
+
+Registration
+
+Discovery
+
+Lookup
+
+Versioning
+
+Metadata
+
+Capability Mapping
+
+Workspace Requirements
+
+Conflict Detection
+
+Lifecycle
+
+The Tool Registry SHALL NOT execute tools.
+
+--------------------------------------------------------------------
+
+# 10. Tool Dispatcher
+
+The Tool Dispatcher SHALL:
+
+Receive validated requests
+
+Resolve tool
+
+Resolve workspace
+
+Validate capabilities
+
+Execute tool
+
+Serialize output
+
+Return response
+
+The dispatcher SHALL remain stateless.
+
+--------------------------------------------------------------------
+
+# 11. Tool Execution Pipeline
+
+Incoming Request
+
+↓
+
+Protocol Validation
+
+↓
+
+Authentication
+
+↓
+
+Workspace Validation
+
+↓
+
+Capability Evaluation
+
+↓
+
+Input Validation
+
+↓
+
+Tool Resolution
+
+↓
+
+Execution
+
+↓
+
+Output Validation
+
+↓
+
+Streaming
+
+↓
+
+Audit Logging
+
+↓
+
+Complete
+
+Every stage SHALL complete successfully before the next stage executes.
+
+--------------------------------------------------------------------
+
+# 12. Tool Input Validation
+
+Every tool SHALL define strict schemas.
+
+Validation SHALL include:
+
+Required fields
+
+Types
+
+Ranges
+
+String lengths
+
+Enumerations
+
+Workspace IDs
+
+File paths
+
+Malformed requests SHALL never reach business logic.
+
+--------------------------------------------------------------------
+
+# 13. Tool Output Validation
+
+Responses SHALL conform to documented schemas.
+
+Unexpected output SHALL be rejected.
+
+Internal implementation details SHALL never leak.
+
+--------------------------------------------------------------------
+
+# 14. Tool Lifecycle
+
+Registered
+
+↓
+
+Available
+
+↓
+
+Executing
+
+↓
+
+Streaming
+
+↓
+
+Completed
+
+OR
+
+Cancelled
+
+OR
+
+Failed
+
+Lifecycle SHALL be observable through diagnostics.
+
+--------------------------------------------------------------------
+
+# 15. Streaming
+
+WorkspaceOS SHALL support streaming wherever appropriate.
+
+Examples:
+
+Terminal output
+
+Search progress
+
+Repository indexing
+
+Large file reads
+
+Long-running analysis
+
+Streaming SHALL support incremental delivery.
+
+Large responses SHALL never require complete buffering before transmission.
+
+--------------------------------------------------------------------
+
+# 16. Cancellation
+
+Every long-running tool SHOULD support cancellation.
+
+Cancellation SHALL be cooperative.
+
+Cancellation SHALL:
+
+Release resources
+
+Stop workers
+
+Flush buffers
+
+Publish completion event
+
+Cancellation SHALL leave the workspace in a consistent state.
+
+--------------------------------------------------------------------
+
+# 17. Timeouts
+
+Every tool SHALL define:
+
+Default timeout
+
+Maximum timeout
+
+Cancellation policy
+
+Retry policy
+
+Infinite execution SHALL NOT be allowed.
+
+Exceptions SHALL be explicitly documented.
+
+--------------------------------------------------------------------
+
+# 18. Error Handling
+
+Errors SHALL be categorized.
+
+Validation
+
+Authentication
+
+Authorization
+
+Capability
+
+Workspace
+
+Filesystem
+
+Git
+
+Terminal
+
+Plugin
+
+Timeout
+
+Internal
+
+Unknown
+
+Every error SHALL contain:
+
+Code
+
+Message
+
+Category
+
+Correlation ID
+
+Retry Recommendation
+
+Internal stack traces SHALL never be exposed externally.
+
+--------------------------------------------------------------------
+
+# 19. Versioning
+
+Each tool SHALL include:
+
+Major Version
+
+Minor Version
+
+Patch Version
+
+Breaking changes SHALL require a major version increment.
+
+Deprecated tools SHALL remain available during the defined compatibility period.
+
+--------------------------------------------------------------------
+
+# 20. Sessions
+
+WorkspaceOS SHALL support client sessions.
+
+Session metadata MAY include:
+
+Connection ID
+
+Authentication Provider
+
+Workspace
+
+Capabilities
+
+Performance Metrics
+
+Last Activity
+
+Sessions SHALL expire after configurable inactivity periods.
+
+--------------------------------------------------------------------
+
+# 21. Connection Management
+
+Connections SHALL support:
+
+Open
+
+Heartbeat
+
+Reconnect
+
+Graceful Shutdown
+
+Unexpected Disconnect
+
+Connection state SHALL be monitored continuously.
+
+--------------------------------------------------------------------
+
+# 22. Tool Discovery
+
+AI systems SHALL discover tools dynamically.
+
+Discovery SHALL expose only tools that:
+
+Exist
+
+Are enabled
+
+Are permitted
+
+Match the client's authorization level
+
+Unauthorized tools SHALL remain invisible.
+
+--------------------------------------------------------------------
+
+# 23. Workspace Awareness
+
+Every workspace-aware tool SHALL require:
+
+Workspace ID
+
+Workspace Validation
+
+Capability Validation
+
+Root Resolution
+
+Execution
+
+Workspace context SHALL never be inferred implicitly.
+
+--------------------------------------------------------------------
+
+# 24. Plugin Tools
+
+Plugins MAY register additional tools.
+
+Plugin tools SHALL:
+
+Declare schemas
+
+Declare capabilities
+
+Declare versions
+
+Declare permissions
+
+Plugin failures SHALL NOT affect core tools.
+
+--------------------------------------------------------------------
+
+# 25. Observability
+
+Every tool execution SHALL generate metrics.
+
+Examples:
+
+Execution time
+
+Queue time
+
+Validation time
+
+Serialization time
+
+Cancellation count
+
+Failure count
+
+Success count
+
+Average latency
+
+These metrics SHALL support future performance optimization.
+
+--------------------------------------------------------------------
+
+# 26. Mermaid Diagram
+
+```mermaid
+
+flowchart TD
+
+CLIENT[AI Client]
+
+CONN[MCP Connection]
+
+AUTH[Authentication]
+
+CAP[Capability Check]
+
+DISPATCH[Tool Dispatcher]
+
+TOOL[Registered Tool]
+
+CORE[WorkspaceOS Core]
+
+RESULT[Streaming Result]
+
+CLIENT --> CONN
+CONN --> AUTH
+AUTH --> CAP
+CAP --> DISPATCH
+DISPATCH --> TOOL
+TOOL --> CORE
+CORE --> RESULT
+RESULT --> CLIENT
+
+````
+
+---
+
+# 27. Future Expansion
+
+The MCP Layer SHALL support future enhancements.
+
+Examples:
+
+Protocol extensions
+
+Remote execution
+
+Distributed workspaces
+
+Collaborative sessions
+
+Batch execution
+
+Workflow orchestration
+
+Agent-to-agent communication
+
+Future additions SHALL preserve architectural compatibility.
+
+---
+
+# 28. Exit Criteria
+
+The MCP Layer is considered complete when:
+
+• AI systems can discover tools dynamically.
+• Tool execution remains stateless.
+• Every request follows the defined execution pipeline.
+• Streaming and cancellation are supported.
+• Business logic remains outside the protocol layer.
+• Tool schemas are fully validated.
+• Tool execution is observable, secure, versioned, and extensible.
+
+====================================================================
+END OF DOCUMENT
+===============
+
+```
+
+**Implementation note for a future ADR (not part of this document):** We should avoid coupling ourselves tightly to a single MCP SDK. Instead, we'll define an internal `ToolProvider` interface in the core, with the official MCP SDK acting as one adapter. That way, if the MCP protocol or SDK changes significantly, we only replace the adapter rather than rewriting the core tool system. This will be documented later as an Architecture Decision Record (ADR).
+```

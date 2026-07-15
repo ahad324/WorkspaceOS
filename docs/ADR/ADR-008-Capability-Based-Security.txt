@@ -1,0 +1,428 @@
+```text id="adr008"
+WorkspaceOS/docs/ADR/ADR-008-Capability-Based-Security.txt
+
+====================================================================
+WorkspaceOS
+Architecture Decision Record
+
+ADR-008
+Title       : Capability-Based Security Model
+Status      : ACCEPTED
+Version     : 1.0
+Date         : TBD
+====================================================================
+
+# Context
+
+WorkspaceOS gives AI systems the ability to inspect and potentially
+modify local repositories.
+
+This makes security the single most critical subsystem.
+
+Traditional role-based access control (RBAC) is insufficient because
+different AI clients require fine-grained, task-specific permissions.
+
+For example:
+
+AI A may need to:
+
+✓ Read repository files
+
+AI B may need to:
+
+✓ Read
+✓ Write
+
+AI C may need:
+
+✓ Read
+✓ Write
+✓ Execute Git commands
+
+AI D may only generate context.
+
+WorkspaceOS therefore requires a more granular authorization model.
+
+--------------------------------------------------------------------
+
+# Requirements
+
+The authorization model MUST provide:
+
+✓ Fine-grained permissions
+
+✓ Workspace isolation
+
+✓ Least privilege
+
+✓ Runtime revocation
+
+✓ Easy auditing
+
+✓ Extensibility
+
+✓ Low latency
+
+✓ Deterministic evaluation
+
+--------------------------------------------------------------------
+
+# Options Considered
+
+Option A
+
+Capability-Based Security
+
+------------------------------------------------------------
+
+Option B
+
+Role-Based Access Control (RBAC)
+
+------------------------------------------------------------
+
+Option C
+
+Access Control Lists (ACL)
+
+------------------------------------------------------------
+
+Option D
+
+OS permissions only
+
+--------------------------------------------------------------------
+
+# Evaluation
+
+Capability-Based Security
+
+Pros
+
+✓ Extremely granular
+
+✓ Composable
+
+✓ Easy to audit
+
+✓ Easy to revoke
+
+✓ Fits AI workflows
+
+✓ Explicit permissions
+
+Cons
+
+• Slightly more implementation complexity
+
+------------------------------------------------------------
+
+RBAC
+
+Pros
+
+✓ Familiar
+
+Cons
+
+• Roles become overly broad
+
+• Difficult to express AI-specific permissions
+
+------------------------------------------------------------
+
+ACL
+
+Pros
+
+✓ Flexible
+
+Cons
+
+• Harder to maintain at scale
+
+• Complex inheritance
+
+------------------------------------------------------------
+
+OS Permissions
+
+Pros
+
+✓ Already available
+
+Cons
+
+• Too coarse-grained
+
+• Cannot express WorkspaceOS semantics
+
+--------------------------------------------------------------------
+
+# Decision
+
+WorkspaceOS SHALL implement a capability-based authorization model.
+
+Authentication identifies the client.
+
+Capabilities define what the client may do.
+
+--------------------------------------------------------------------
+
+# Security Layers
+
+Every request SHALL pass:
+
+1. Transport Security
+
+↓
+
+2. Authentication
+
+↓
+
+3. Session Validation
+
+↓
+
+4. Workspace Validation
+
+↓
+
+5. Capability Evaluation
+
+↓
+
+6. Input Validation
+
+↓
+
+7. Business Logic
+
+↓
+
+8. Audit Logging
+
+Skipping any layer is prohibited.
+
+--------------------------------------------------------------------
+
+# Capability Examples
+
+Core capabilities MAY include:
+
+workspace.read
+
+workspace.write
+
+workspace.delete
+
+workspace.list
+
+workspace.create
+
+context.generate
+
+context.search
+
+context.inspect
+
+index.read
+
+index.rebuild
+
+plugin.install
+
+plugin.remove
+
+plugin.execute
+
+tunnel.start
+
+tunnel.stop
+
+config.read
+
+config.write
+
+diagnostics.read
+
+logs.read
+
+git.read
+
+git.write
+
+git.execute
+
+future.*
+
+Capabilities SHALL remain additive.
+
+No capability SHALL implicitly grant unrelated permissions.
+
+--------------------------------------------------------------------
+
+# Workspace Isolation
+
+Capabilities SHALL always be evaluated together with workspace scope.
+
+Example:
+
+workspace.read
+
++
+
+Workspace A
+
+does NOT grant access to:
+
+Workspace B
+
+Each authorization decision SHALL include both:
+
+Capability
+
+Workspace Scope
+
+--------------------------------------------------------------------
+
+# Authentication
+
+WorkspaceOS SHALL support multiple authentication mechanisms.
+
+Examples:
+
+API Keys
+
+JWT
+
+Local desktop session
+
+Future OAuth providers
+
+Authentication SHALL remain independent of authorization.
+
+--------------------------------------------------------------------
+
+# Revocation
+
+Capabilities SHALL be revocable:
+
+Immediately
+
+Without restarting WorkspaceOS
+
+Without restarting AI sessions
+
+Revocation SHALL invalidate future requests.
+
+--------------------------------------------------------------------
+
+# Audit Logging
+
+Every privileged operation SHALL generate an immutable audit record.
+
+Each record SHOULD include:
+
+Timestamp
+
+Session ID
+
+Workspace
+
+Identity
+
+Capabilities used
+
+Operation
+
+Result
+
+Duration
+
+Correlation ID
+
+Sensitive payloads SHALL NOT be logged.
+
+--------------------------------------------------------------------
+
+# Performance
+
+Capability evaluation SHALL be:
+
+Deterministic
+
+Cache-friendly
+
+Low latency
+
+Stateless where practical
+
+Authorization SHALL add minimal overhead to request processing.
+
+--------------------------------------------------------------------
+
+# Engineering Rules
+
+Capabilities SHALL:
+
+Be explicit.
+
+Be documented.
+
+Be independently testable.
+
+Avoid overlap.
+
+Avoid ambiguity.
+
+Never depend on UI state.
+
+Authorization logic SHALL exist only within the Security Engine.
+
+--------------------------------------------------------------------
+
+# Consequences
+
+Positive
+
+✓ Fine-grained security
+
+✓ Excellent auditability
+
+✓ Strong workspace isolation
+
+✓ Easy future expansion
+
+✓ AI-provider independence
+
+Negative
+
+• Slightly more complex permission management
+
+The added complexity is justified by the significant improvement in
+security and flexibility.
+
+--------------------------------------------------------------------
+
+# Future Review
+
+This decision SHALL only be reconsidered if:
+
+• A demonstrably superior authorization model emerges that provides
+equal or better security, flexibility and performance.
+
+Any replacement SHALL require:
+
+• Security review
+• Updated ADR
+• Migration strategy
+• Architecture review
+
+====================================================================
+Decision: ACCEPTED
+====================================================================
+```
+
+**Note for the overall architecture:** As we progress through the ADRs, we'll also introduce decisions for **BLAKE3 hashing**, **tree-sitter parsing**, **notify filesystem watching**, **adaptive worker scheduling**, **moka/W-TinyLFU caching (subject to benchmarks)**, and **hybrid search (SQLite + Tantivy where beneficial)**. Those are areas where benchmarking will determine the exact implementation rather than selecting a technology solely by popularity.

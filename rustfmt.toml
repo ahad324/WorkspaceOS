@@ -1,0 +1,4 @@
+edition = "2021"
+newline_style = "LF"
+use_field_init_shorthand = true
+use_try_short_hand = true

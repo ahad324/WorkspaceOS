@@ -1,0 +1,693 @@
+````text
+WorkspaceOS/docs/SAD/05-Performance.txt
+
+====================================================================
+WorkspaceOS
+Software Architecture Document (SAD)
+
+Document ID      : SAD-005
+Document Name    : Performance Architecture
+Version          : 1.0.0
+Status           : Draft
+Owner            : WorkspaceOS
+Classification   : Public
+====================================================================
+
+# IMPORTANT NOTE
+
+This document intentionally avoids "premature optimization."
+
+WorkspaceOS SHALL optimize only after defining measurable objectives,
+performance budgets, and profiling methodologies.
+
+Every optimization MUST be supported by benchmark data.
+
+If two implementations produce equivalent measurable results, the simpler
+implementation SHOULD be preferred.
+
+--------------------------------------------------------------------
+
+# 1. Purpose
+
+This document defines the performance philosophy, performance budgets,
+resource management, scheduling model, caching strategy, indexing
+strategy, concurrency model, adaptive optimization, benchmarking
+requirements, and engineering rules governing WorkspaceOS.
+
+Performance is considered a first-class architectural concern.
+
+Every subsystem SHALL define measurable performance targets.
+
+--------------------------------------------------------------------
+
+# 2. Performance Philosophy
+
+WorkspaceOS SHALL be designed according to the following principles.
+
+• Zero unnecessary work
+• Event-driven execution
+• Lazy initialization
+• Incremental computation
+• Cache intelligently
+• Measure everything
+• Predict, never guess
+• Never block the user
+• Adapt to hardware
+• Favor consistency over peak performance
+
+The system SHALL prioritize responsiveness over maximum throughput.
+
+--------------------------------------------------------------------
+
+# 3. Engineering Goals
+
+WorkspaceOS SHALL strive for:
+
+Fast startup
+
+Low idle resource usage
+
+Predictable latency
+
+Fast searches
+
+Fast indexing
+
+Fast workspace switching
+
+Fast context generation
+
+Efficient memory utilization
+
+Graceful degradation
+
+Scalable performance
+
+--------------------------------------------------------------------
+
+# 4. Performance Budgets
+
+The following targets represent engineering goals for a standard
+developer workstation.
+
+Cold Startup
+
+Target
+
+< 2 seconds
+
+------------------------------------------------------------
+
+Warm Startup
+
+Target
+
+< 500 ms
+
+------------------------------------------------------------
+
+Workspace Switching
+
+Target
+
+< 200 ms
+
+------------------------------------------------------------
+
+Configuration Loading
+
+Target
+
+< 50 ms
+
+------------------------------------------------------------
+
+File Read (cached)
+
+Target
+
+< 5 ms
+
+------------------------------------------------------------
+
+Workspace Validation
+
+Target
+
+< 10 ms
+
+------------------------------------------------------------
+
+Indexed Search
+
+Target
+
+< 50 ms
+
+------------------------------------------------------------
+
+Incremental Index Update
+
+Target
+
+< 100 ms after filesystem notification
+
+------------------------------------------------------------
+
+Context Generation
+
+Target
+
+< 150 ms for medium repositories
+
+------------------------------------------------------------
+
+Idle CPU
+
+Target
+
+Approximately 0%
+
+------------------------------------------------------------
+
+Idle Memory
+
+Target
+
+Less than 150 MB
+
+These are engineering objectives rather than hard guarantees.
+
+--------------------------------------------------------------------
+
+# 5. Zero Idle Philosophy
+
+When the user is not interacting with WorkspaceOS:
+
+CPU utilization SHOULD approach zero.
+
+Disk activity SHOULD be minimal.
+
+Memory growth SHOULD stabilize.
+
+Background workers SHOULD sleep.
+
+The system SHALL avoid periodic polling whenever an event-driven
+alternative exists.
+
+--------------------------------------------------------------------
+
+# 6. Event-Driven Architecture
+
+WorkspaceOS SHALL prefer events over polling.
+
+Example
+
+Filesystem Event
+
+↓
+
+Update Metadata
+
+↓
+
+Update Index
+
+↓
+
+Publish Event
+
+Rather than
+
+Timer
+
+↓
+
+Scan Entire Repository
+
+↓
+
+Repeat Forever
+
+Polling SHALL only be used where no event source exists.
+
+--------------------------------------------------------------------
+
+# 7. Adaptive Performance Profiles
+
+WorkspaceOS SHALL detect hardware characteristics at startup.
+
+Factors include:
+
+Available RAM
+
+Logical CPU count
+
+CPU architecture
+
+Disk type (HDD/SSD/NVMe)
+
+Current system load
+
+Battery status (where available)
+
+The runtime SHALL assign one of the following profiles.
+
+LOW
+
+MID
+
+HIGH
+
+ULTRA
+
+Profiles MAY change dynamically during execution.
+
+--------------------------------------------------------------------
+
+# 8. Profile Behavior
+
+LOW
+
+Optimized for systems such as:
+
+4 GB RAM
+
+Dual-core CPU
+
+HDD
+
+Characteristics
+
+Small caches
+
+Reduced worker count
+
+Lazy indexing
+
+Limited prefetching
+
+Background throttling
+
+------------------------------------------------------------
+
+MID
+
+Balanced configuration.
+
+------------------------------------------------------------
+
+HIGH
+
+Parallel indexing
+
+Larger caches
+
+Background optimization
+
+Aggressive cache warming
+
+------------------------------------------------------------
+
+ULTRA
+
+Large repositories
+
+High worker concurrency
+
+Extensive prefetching
+
+Maximum cache sizes
+
+Speculative optimizations
+
+Foreground responsiveness SHALL always take priority over background work.
+
+--------------------------------------------------------------------
+
+# 9. Scheduler
+
+WorkspaceOS SHALL include a centralized scheduler.
+
+Every background task SHALL have a priority.
+
+CRITICAL
+
+HIGH
+
+NORMAL
+
+LOW
+
+IDLE
+
+Examples
+
+User request
+
+↓
+
+CRITICAL
+
+Repository indexing
+
+↓
+
+LOW
+
+Predictive indexing
+
+↓
+
+IDLE
+
+Lower-priority tasks SHALL yield to higher-priority tasks.
+
+--------------------------------------------------------------------
+
+# 10. Concurrency
+
+CPU-intensive work SHALL execute outside latency-sensitive execution paths.
+
+Examples
+
+Index construction
+
+Symbol extraction
+
+Dependency graph generation
+
+Search indexing
+
+These SHALL execute in worker threads or native workers.
+
+Blocking I/O SHALL be avoided on hot paths.
+
+--------------------------------------------------------------------
+
+# 11. Memory Management
+
+WorkspaceOS SHALL operate within configurable memory budgets.
+
+Memory consumers include:
+
+Caches
+
+Indexes
+
+Metadata
+
+Plugins
+
+Search structures
+
+Context engine
+
+Each subsystem SHALL declare expected memory usage.
+
+The runtime MAY reduce allocations when system memory is constrained.
+
+--------------------------------------------------------------------
+
+# 12. Multi-Level Cache
+
+WorkspaceOS SHALL implement layered caching.
+
+Level 1
+
+In-memory cache
+
+Fastest
+
+------------------------------------------------------------
+
+Level 2
+
+Persistent cache (SQLite)
+
+------------------------------------------------------------
+
+Level 3
+
+Filesystem
+
+Slowest
+
+Cache lookups SHALL always begin at the highest available layer.
+
+--------------------------------------------------------------------
+
+# 13. Cache Policies
+
+Every cache SHALL define:
+
+Maximum size
+
+Eviction strategy
+
+Expiration policy
+
+Persistence policy
+
+Warm-up strategy
+
+Statistics
+
+Recommended eviction policy:
+
+Least Recently Used (LRU)
+
+Future cache implementations MAY adopt adaptive policies based on measured performance.
+
+--------------------------------------------------------------------
+
+# 14. Lazy Loading
+
+WorkspaceOS SHALL defer work until required.
+
+Examples
+
+Do not parse
+
+node_modules
+
+until necessary.
+
+Do not parse
+
+.git
+
+until Git functionality is requested.
+
+Do not initialize plugins until enabled.
+
+Do not load workspace metadata until selected.
+
+--------------------------------------------------------------------
+
+# 15. Incremental Processing
+
+Full repository rescans SHALL be avoided whenever possible.
+
+Preferred workflow:
+
+Filesystem Event
+
+↓
+
+Determine affected files
+
+↓
+
+Update only affected metadata
+
+↓
+
+Update dependent indexes
+
+↓
+
+Publish update
+
+Only impacted data SHALL be recomputed.
+
+--------------------------------------------------------------------
+
+# 16. Predictive Optimization
+
+When the system is idle, WorkspaceOS MAY perform speculative work.
+
+Examples:
+
+Prefetch commonly accessed metadata
+
+Warm caches
+
+Precompute dependency graphs
+
+Prepare frequently requested context
+
+Speculative work SHALL immediately pause when foreground activity resumes.
+
+--------------------------------------------------------------------
+
+# 17. Resource Manager
+
+WorkspaceOS SHALL continuously observe:
+
+CPU utilization
+
+Available memory
+
+Disk utilization
+
+Scheduler load
+
+Workspace activity
+
+Based on measurements, the runtime MAY:
+
+Reduce worker count
+
+Shrink caches
+
+Delay indexing
+
+Suspend predictive work
+
+Increase parallelism when resources permit
+
+--------------------------------------------------------------------
+
+# 18. Performance Telemetry
+
+WorkspaceOS SHALL collect anonymous local runtime metrics.
+
+Examples
+
+Cache hit ratio
+
+Average search latency
+
+Average index latency
+
+Memory usage
+
+CPU utilization
+
+Worker utilization
+
+Task queue lengths
+
+Telemetry SHALL remain local unless explicitly exported by the user.
+
+--------------------------------------------------------------------
+
+# 19. Performance Regression Prevention
+
+Every performance-sensitive change SHALL include benchmark results.
+
+Performance regressions exceeding defined thresholds SHALL block release until reviewed.
+
+Optimizations SHALL never be accepted solely based on assumptions.
+
+--------------------------------------------------------------------
+
+# 20. Large Repository Strategy
+
+WorkspaceOS SHALL remain responsive when handling repositories containing:
+
+Millions of files
+
+Hundreds of thousands of symbols
+
+Thousands of directories
+
+Large Git histories
+
+Strategies include:
+
+Incremental indexing
+
+Metadata persistence
+
+Selective loading
+
+Adaptive worker allocation
+
+Memory budgets
+
+Streaming processing
+
+--------------------------------------------------------------------
+
+# 21. Performance Anti-Patterns
+
+The following practices are prohibited in latency-sensitive code paths:
+
+Recursive full-directory scans
+
+Repeated parsing of unchanged files
+
+Busy waiting
+
+Unbounded memory growth
+
+Blocking I/O
+
+Global locks with long hold times
+
+Repeated filesystem access for cached data
+
+Duplicate indexing
+
+Repeated object allocation inside tight loops where avoidable
+
+--------------------------------------------------------------------
+
+# 22. Mermaid Diagram
+
+```mermaid
+flowchart TD
+
+EVENT[Filesystem Event]
+
+SCHED[Scheduler]
+
+WORKER[Worker Pool]
+
+CACHE[L1/L2 Cache]
+
+INDEX[Index Engine]
+
+CTX[Context Engine]
+
+EVENT --> SCHED
+SCHED --> WORKER
+WORKER --> CACHE
+WORKER --> INDEX
+INDEX --> CTX
+````
+
+---
+
+# 23. Exit Criteria
+
+The Performance Architecture is considered complete when:
+
+• The runtime remains responsive under normal workloads.
+• Idle resource consumption is minimal.
+• Background work never blocks user interactions.
+• Performance adapts to available hardware.
+• Every optimization is measurable.
+• Every subsystem operates within defined resource budgets.
+• Performance regressions are detected through automated benchmarking.
+
+====================================================================
+END OF DOCUMENT
+===============
+
+```
+
+**One architectural correction we'll make later (important):** in the cache section I intentionally wrote **LRU** because it's well-known, but during implementation I actually want us to evaluate **TinyLFU (W-TinyLFU)** or **ARC** through Phase 0.5 benchmarks. Modern cache algorithms often outperform plain LRU under mixed workloads. Rather than hard-coding LRU into the architecture, we'll benchmark the options and document the measured winner. That's exactly the kind of evidence-driven refinement we want throughout WorkspaceOS.
+```

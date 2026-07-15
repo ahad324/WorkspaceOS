@@ -1,0 +1,553 @@
+````text
+WorkspaceOS/docs/SAD/12-Coding-Standards.txt
+
+====================================================================
+WorkspaceOS
+Software Architecture Document (SAD)
+
+Document ID      : SAD-012
+Document Name    : Engineering Standards & Coding Guidelines
+Version          : 1.0.0
+Status           : Draft
+Owner            : WorkspaceOS
+Classification   : Public
+====================================================================
+
+# IMPORTANT NOTE
+
+This document is mandatory.
+
+Every line of code written for WorkspaceOS SHALL comply with this
+document.
+
+These standards exist to maximize:
+
+• Performance
+• Maintainability
+• Readability
+• Reliability
+• Security
+• Testability
+• Scalability
+
+Whenever two implementations provide equivalent measurable results,
+the simpler implementation SHALL be preferred.
+
+Performance SHALL NEVER be used as an excuse for poor architecture.
+
+--------------------------------------------------------------------
+
+# 1. Engineering Philosophy
+
+WorkspaceOS SHALL follow:
+
+Correctness First
+
+↓
+
+Security
+
+↓
+
+Reliability
+
+↓
+
+Maintainability
+
+↓
+
+Performance
+
+↓
+
+Developer Convenience
+
+Convenience SHALL never justify violating architecture.
+
+--------------------------------------------------------------------
+
+# 2. Core Principles
+
+Every subsystem SHALL:
+
+Have one responsibility
+
+Be independently testable
+
+Expose clear interfaces
+
+Avoid hidden dependencies
+
+Avoid shared mutable state
+
+Remain deterministic
+
+Support profiling
+
+Support structured logging
+
+Support graceful shutdown
+
+Support graceful recovery
+
+--------------------------------------------------------------------
+
+# 3. SOLID
+
+WorkspaceOS SHALL follow SOLID where applicable.
+
+Exceptions SHALL require measurable justification.
+
+--------------------------------------------------------------------
+
+# 4. KISS
+
+Keep implementations simple.
+
+Complexity SHALL require measurable benefit.
+
+Accidental complexity SHALL be removed.
+
+--------------------------------------------------------------------
+
+# 5. DRY
+
+Duplicate logic SHALL be eliminated.
+
+Shared behavior SHALL exist in reusable modules.
+
+--------------------------------------------------------------------
+
+# 6. YAGNI
+
+Features SHALL NOT be implemented until justified.
+
+Future expansion SHALL occur through extension points rather than
+premature implementation.
+
+--------------------------------------------------------------------
+
+# 7. Clean Architecture
+
+Dependencies SHALL point inward.
+
+Business logic SHALL remain independent of:
+
+UI
+
+Database
+
+Filesystem
+
+Network
+
+MCP
+
+Tunnel providers
+
+Frameworks
+
+--------------------------------------------------------------------
+
+# 8. Naming
+
+Names SHALL be:
+
+Descriptive
+
+Consistent
+
+Predictable
+
+Avoid abbreviations unless universally understood.
+
+Examples
+
+Good
+
+WorkspaceManager
+
+PermissionEvaluator
+
+RepositoryIndexer
+
+ContextAssembler
+
+Poor
+
+Manager2
+
+Helper
+
+Util
+
+Thing
+
+Temp
+
+Misc
+
+--------------------------------------------------------------------
+
+# 9. File Organization
+
+Files SHALL remain focused.
+
+Very large files SHOULD be refactored.
+
+Related functionality SHALL remain together.
+
+Feature-first organization SHALL generally be preferred over
+type-first organization.
+
+--------------------------------------------------------------------
+
+# 10. Functions
+
+Functions SHALL:
+
+Perform one task
+
+Remain short where practical
+
+Avoid side effects
+
+Return predictable results
+
+Validate inputs
+
+Document assumptions
+
+Deep nesting SHOULD be avoided.
+
+--------------------------------------------------------------------
+
+# 11. Error Handling
+
+Errors SHALL NEVER be ignored.
+
+Errors SHALL include:
+
+Category
+
+Message
+
+Context
+
+Correlation ID
+
+Recovery guidance
+
+Panics/exceptions SHALL represent exceptional situations only.
+
+--------------------------------------------------------------------
+
+# 12. Logging
+
+Logging SHALL be structured.
+
+Every log entry SHOULD include:
+
+Timestamp
+
+Level
+
+Subsystem
+
+Correlation ID
+
+Workspace ID (if applicable)
+
+Message
+
+Sensitive information SHALL never be logged.
+
+--------------------------------------------------------------------
+
+# 13. Configuration
+
+Magic values are prohibited.
+
+Configuration SHALL remain externalized.
+
+Defaults SHALL be documented.
+
+Configuration SHALL be validated.
+
+--------------------------------------------------------------------
+
+# 14. Security
+
+Secrets SHALL never appear in:
+
+Logs
+
+Exceptions
+
+Configuration exports
+
+Telemetry
+
+Debug output
+
+Security-sensitive code SHALL undergo additional review.
+
+--------------------------------------------------------------------
+
+# 15. Performance
+
+Performance-sensitive code SHALL:
+
+Avoid unnecessary allocations
+
+Avoid unnecessary cloning
+
+Avoid unnecessary locking
+
+Avoid blocking I/O
+
+Prefer streaming
+
+Reuse buffers where practical
+
+Every optimization SHALL be measurable.
+
+--------------------------------------------------------------------
+
+# 16. Memory
+
+Memory ownership SHALL remain explicit.
+
+Large allocations SHALL be justified.
+
+Unbounded collections SHALL be avoided.
+
+Caches SHALL define limits.
+
+--------------------------------------------------------------------
+
+# 17. Concurrency
+
+Shared mutable state SHALL be minimized.
+
+Locks SHALL remain short-lived.
+
+Deadlocks SHALL be prevented through documented lock ordering.
+
+Message passing SHOULD be preferred where practical.
+
+--------------------------------------------------------------------
+
+# 18. Testing
+
+Every public component SHALL include:
+
+Unit tests
+
+Integration tests (where applicable)
+
+Performance benchmarks (for critical paths)
+
+Regression tests (when bugs are fixed)
+
+Tests SHALL remain deterministic.
+
+--------------------------------------------------------------------
+
+# 19. Documentation
+
+Every public API SHALL document:
+
+Purpose
+
+Parameters
+
+Return values
+
+Errors
+
+Thread safety (if relevant)
+
+Performance considerations
+
+Documentation SHALL evolve with code.
+
+--------------------------------------------------------------------
+
+# 20. Dependency Management
+
+Every dependency SHALL have documented justification.
+
+Unused dependencies SHALL be removed.
+
+Heavy dependencies SHALL require measurable value.
+
+WorkspaceOS SHALL prefer mature, actively maintained libraries.
+
+--------------------------------------------------------------------
+
+# 21. Reviews
+
+Every pull request SHALL verify:
+
+Architecture
+
+Security
+
+Correctness
+
+Performance
+
+Maintainability
+
+Testing
+
+Documentation
+
+No code SHALL bypass review without documented justification.
+
+--------------------------------------------------------------------
+
+# 22. Benchmarking
+
+Performance-sensitive changes SHALL include:
+
+Before
+
+After
+
+Environment
+
+Methodology
+
+Results
+
+Optimizations without measurements SHALL be rejected.
+
+--------------------------------------------------------------------
+
+# 23. Static Analysis
+
+The project SHALL enforce:
+
+Formatting
+
+Linting
+
+Type checking
+
+Security scanning
+
+Dependency auditing
+
+Warnings SHOULD be treated as build failures where practical.
+
+--------------------------------------------------------------------
+
+# 24. Version Control
+
+Commits SHALL remain:
+
+Small
+
+Focused
+
+Atomic
+
+Descriptive
+
+Large unrelated commits SHOULD be avoided.
+
+--------------------------------------------------------------------
+
+# 25. Architecture Compliance
+
+No implementation SHALL:
+
+Bypass Workspace boundaries
+
+Bypass Security
+
+Bypass Capability checks
+
+Access internal subsystem state directly
+
+Introduce circular dependencies
+
+Violations SHALL require architectural review.
+
+--------------------------------------------------------------------
+
+# 26. Code Review Checklist
+
+Every reviewer SHOULD verify:
+
+✓ Correctness
+
+✓ Security
+
+✓ Performance
+
+✓ Memory usage
+
+✓ CPU usage
+
+✓ Readability
+
+✓ Maintainability
+
+✓ Documentation
+
+✓ Tests
+
+✓ Benchmarks
+
+✓ Logging
+
+✓ Error handling
+
+✓ Architecture compliance
+
+--------------------------------------------------------------------
+
+# 27. Mermaid Diagram
+
+```mermaid
+
+flowchart LR
+
+Design --> Code
+
+Code --> Test
+
+Test --> Benchmark
+
+Benchmark --> Review
+
+Review --> Merge
+
+Merge --> Release
+
+````
+
+---
+
+# 28. Exit Criteria
+
+The Engineering Standards are considered complete when:
+
+• Every contribution follows documented conventions.
+• Code quality remains consistent across all subsystems.
+• Performance claims are benchmarked.
+• Security requirements are respected.
+• Architecture remains stable.
+• Future contributors can understand the project without relying on
+tribal knowledge.
+
+====================================================================
+END OF DOCUMENT
+===============
+
+```
+```

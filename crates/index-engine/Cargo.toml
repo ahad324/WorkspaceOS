@@ -1,0 +1,12 @@
+[package]
+name = "index-engine"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { workspace = true }
+tracing = { workspace = true }
+rusqlite = { workspace = true }
+tree-sitter = { workspace = true }
+blake3 = { workspace = true }
+workspace-engine = { path = "../workspace-engine" }

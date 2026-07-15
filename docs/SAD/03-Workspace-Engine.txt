@@ -1,0 +1,766 @@
+````text
+WorkspaceOS/docs/SAD/03-Workspace-Engine.txt
+
+====================================================================
+WorkspaceOS
+Software Architecture Document (SAD)
+
+Document ID      : SAD-003
+Document Name    : Workspace Engine
+Version          : 1.0.0
+Status           : Draft
+Owner            : WorkspaceOS
+Classification   : Public
+====================================================================
+
+# 1. Purpose
+
+The Workspace Engine is the heart of WorkspaceOS.
+
+Its responsibility is to define, manage, secure, monitor, and optimize every workspace that WorkspaceOS interacts with.
+
+Every operation performed by any subsystem SHALL originate from a validated workspace.
+
+The Workspace Engine acts as the trust boundary between the user's filesystem and every AI, plugin, tunnel, tool, or external client.
+
+No operation SHALL execute outside the Workspace Engine.
+
+--------------------------------------------------------------------
+
+# 2. Definition of a Workspace
+
+A Workspace represents an isolated project environment.
+
+A workspace consists of:
+
+• Unique Identifier
+• Human-readable Name
+• Root Directory
+• Configuration
+• Security Policies
+• Capabilities
+• Performance Profile
+• Metadata
+• Runtime State
+• Plugin Configuration
+• Tunnel Configuration
+• Audit History
+
+A workspace SHALL be the smallest independently manageable execution boundary within WorkspaceOS.
+
+--------------------------------------------------------------------
+
+# 3. Workspace Goals
+
+The Workspace Engine SHALL provide:
+
+• Isolation
+• Security
+• High performance
+• Predictable behavior
+• Fast startup
+• Fast switching
+• Resource awareness
+• Extensibility
+• Crash recovery
+
+--------------------------------------------------------------------
+
+# 4. Core Principles
+
+1.
+
+Every project SHALL belong to exactly one workspace.
+
+------------------------------------------------------------
+
+2.
+
+Every workspace SHALL have exactly one root directory.
+
+------------------------------------------------------------
+
+3.
+
+Every file operation SHALL be validated against the workspace root.
+
+------------------------------------------------------------
+
+4.
+
+A workspace SHALL never access another workspace unless explicitly authorized.
+
+------------------------------------------------------------
+
+5.
+
+Workspace boundaries SHALL never be bypassed.
+
+--------------------------------------------------------------------
+
+# 5. Workspace Lifecycle
+
+Workspace Creation
+
+↓
+
+Validation
+
+↓
+
+Registration
+
+↓
+
+Configuration
+
+↓
+
+Initialization
+
+↓
+
+Ready
+
+↓
+
+Running
+
+↓
+
+Paused
+
+↓
+
+Stopped
+
+↓
+
+Archived (optional)
+
+↓
+
+Deleted
+
+Every transition SHALL be validated.
+
+Illegal state transitions SHALL be rejected.
+
+--------------------------------------------------------------------
+
+# 6. Workspace States
+
+State
+
+CREATED
+
+Workspace exists but has not been initialized.
+
+------------------------------------------------------------
+
+INITIALIZING
+
+Workspace resources are loading.
+
+------------------------------------------------------------
+
+READY
+
+Workspace is available.
+
+------------------------------------------------------------
+
+ACTIVE
+
+Workspace currently serving requests.
+
+------------------------------------------------------------
+
+PAUSED
+
+Background activity suspended.
+
+------------------------------------------------------------
+
+INDEXING
+
+Workspace actively updating indexes.
+
+------------------------------------------------------------
+
+ERROR
+
+Recoverable failure.
+
+------------------------------------------------------------
+
+RECOVERING
+
+Automatic recovery in progress.
+
+------------------------------------------------------------
+
+STOPPED
+
+Workspace intentionally shut down.
+
+--------------------------------------------------------------------
+
+# 7. Workspace Metadata
+
+Every workspace SHALL maintain immutable metadata.
+
+Required metadata includes:
+
+Workspace ID
+
+Workspace Name
+
+Creation Time
+
+Last Modified
+
+Workspace Root
+
+Operating System
+
+Repository Type
+
+Language Detection
+
+Build System
+
+Package Manager
+
+Detected Frameworks
+
+Git Repository Status
+
+Index Version
+
+Performance Profile
+
+Workspace Version
+
+Configuration Version
+
+--------------------------------------------------------------------
+
+# 8. Workspace Configuration
+
+Workspace configuration SHALL be stored independently from application configuration.
+
+Example sections:
+
+General
+
+Security
+
+Capabilities
+
+Plugins
+
+Tunnel
+
+Performance
+
+Indexing
+
+Search
+
+Git
+
+Terminal
+
+AI Policies
+
+Future configuration SHALL remain backward compatible whenever practical.
+
+--------------------------------------------------------------------
+
+# 9. Workspace Registration
+
+Registration process:
+
+Validate path
+
+↓
+
+Normalize path
+
+↓
+
+Resolve symbolic links
+
+↓
+
+Check existence
+
+↓
+
+Verify permissions
+
+↓
+
+Check duplicates
+
+↓
+
+Detect project
+
+↓
+
+Generate Workspace ID
+
+↓
+
+Persist configuration
+
+↓
+
+Register
+
+Workspace registration SHALL be atomic.
+
+Partial registration SHALL never occur.
+
+--------------------------------------------------------------------
+
+# 10. Root Path Validation
+
+Before accepting a workspace:
+
+Workspace path SHALL:
+
+Exist
+
+Be accessible
+
+Be readable
+
+Not contain invalid characters
+
+Not overlap restricted directories
+
+Not duplicate another registered workspace
+
+Canonical path SHALL always be stored.
+
+--------------------------------------------------------------------
+
+# 11. Workspace Isolation
+
+Every request SHALL include:
+
+Workspace ID
+
+↓
+
+Workspace Lookup
+
+↓
+
+Root Resolution
+
+↓
+
+Permission Check
+
+↓
+
+Capability Check
+
+↓
+
+Execution
+
+No request SHALL directly specify arbitrary filesystem paths.
+
+All paths SHALL be resolved relative to the workspace root.
+
+--------------------------------------------------------------------
+
+# 12. Path Resolution
+
+Example
+
+Workspace Root
+
+G:\InventorySystem
+
+Incoming request
+
+src/services/auth.ts
+
+Resolved path
+
+G:\InventorySystem\src\services\auth.ts
+
+Attempt
+
+../../../Windows
+
+↓
+
+Reject
+
+Attempt
+
+Absolute path
+
+↓
+
+Reject
+
+Attempt
+
+Symbolic link escape
+
+↓
+
+Reject
+
+Workspace boundary violations SHALL never reach filesystem APIs.
+
+--------------------------------------------------------------------
+
+# 13. Workspace Context
+
+The Workspace Engine SHALL expose contextual information.
+
+Examples:
+
+Project Name
+
+Detected Language
+
+Detected Framework
+
+Package Manager
+
+Git Branch
+
+Workspace Health
+
+Index Health
+
+Plugin Status
+
+Performance Mode
+
+AI clients SHALL retrieve context through the Context Engine rather than direct filesystem inspection.
+
+--------------------------------------------------------------------
+
+# 14. Performance Profiles
+
+WorkspaceOS SHALL automatically assign one of the following profiles.
+
+LOW
+
+MID
+
+HIGH
+
+ULTRA
+
+Selection SHALL consider:
+
+Available RAM
+
+CPU Cores
+
+CPU Architecture
+
+Disk Type
+
+Battery State (where available)
+
+Current System Load
+
+Profile changes SHALL occur dynamically when beneficial.
+
+--------------------------------------------------------------------
+
+# 15. Adaptive Behavior
+
+Example
+
+LOW profile
+
+• Smaller caches
+• Fewer workers
+• Lazy indexing
+• Reduced prefetch
+• Lower memory limits
+
+------------------------------------------------------------
+
+HIGH profile
+
+• Parallel indexing
+• Larger caches
+• Background optimization
+• Predictive cache warming
+• Increased worker concurrency
+
+Adaptive changes SHALL never interrupt active user operations.
+
+--------------------------------------------------------------------
+
+# 16. Workspace Scheduler Integration
+
+Each workspace SHALL own lightweight scheduling metadata.
+
+Examples
+
+Pending Index Jobs
+
+Running Tasks
+
+Queued Operations
+
+Retry Queue
+
+Background Jobs
+
+Actual execution SHALL remain under the global Scheduler.
+
+--------------------------------------------------------------------
+
+# 17. Resource Budgets
+
+Each workspace SHALL have resource budgets.
+
+Memory Budget
+
+CPU Budget
+
+Disk Cache Budget
+
+Worker Budget
+
+Background Task Budget
+
+Budgets SHALL adapt dynamically according to available system resources.
+
+No workspace SHALL monopolize system resources.
+
+--------------------------------------------------------------------
+
+# 18. Workspace Health
+
+Health SHALL be continuously evaluated.
+
+Metrics include:
+
+Filesystem Accessibility
+
+Index Freshness
+
+Git Availability
+
+Plugin Status
+
+Search Availability
+
+Configuration Validity
+
+Tunnel Status
+
+Scheduler State
+
+Overall Health
+
+Possible health values:
+
+Healthy
+
+Warning
+
+Degraded
+
+Recovering
+
+Failed
+
+--------------------------------------------------------------------
+
+# 19. Automatic Recovery
+
+Recoverable failures SHALL trigger recovery.
+
+Examples
+
+Filesystem temporarily unavailable
+
+↓
+
+Retry
+
+Plugin crash
+
+↓
+
+Unload plugin
+
+↓
+
+Continue
+
+Index corruption
+
+↓
+
+Rebuild affected index
+
+Configuration corruption
+
+↓
+
+Restore backup
+
+Recovery SHALL prioritize preserving user work.
+
+--------------------------------------------------------------------
+
+# 20. Workspace Snapshots
+
+Before high-impact operations, WorkspaceOS MAY create snapshots.
+
+Examples:
+
+Large AI edits
+
+Bulk rename
+
+Mass deletion
+
+Automated refactoring
+
+If Git is available, snapshots SHOULD leverage Git primitives where appropriate. Otherwise, WorkspaceOS MAY use an internal snapshot mechanism.
+
+Snapshots SHALL support rollback.
+
+--------------------------------------------------------------------
+
+# 21. Workspace Discovery
+
+WorkspaceOS SHALL support automatic discovery.
+
+Discovery sources MAY include:
+
+Recent projects
+
+Known development folders
+
+Git repositories
+
+User-defined locations
+
+Discovery SHALL never automatically register a workspace without user approval.
+
+--------------------------------------------------------------------
+
+# 22. Workspace Events
+
+The Workspace Engine SHALL publish events.
+
+Examples
+
+WorkspaceCreated
+
+WorkspaceLoaded
+
+WorkspaceActivated
+
+WorkspacePaused
+
+WorkspaceResumed
+
+WorkspaceIndexed
+
+WorkspaceUpdated
+
+WorkspaceRecovered
+
+WorkspaceDeleted
+
+Events SHALL be immutable.
+
+--------------------------------------------------------------------
+
+# 23. Workspace Ownership
+
+The Workspace Engine SHALL own:
+
+Workspace lifecycle
+
+Workspace metadata
+
+Workspace configuration
+
+Workspace state
+
+Workspace validation
+
+Workspace health
+
+Workspace isolation
+
+No other subsystem SHALL modify these directly.
+
+--------------------------------------------------------------------
+
+# 24. Mermaid Diagram
+
+```mermaid
+stateDiagram-v2
+
+[*] --> Created
+
+Created --> Initializing
+
+Initializing --> Ready
+
+Ready --> Active
+
+Active --> Indexing
+
+Indexing --> Active
+
+Active --> Paused
+
+Paused --> Active
+
+Active --> Error
+
+Error --> Recovering
+
+Recovering --> Active
+
+Active --> Stopped
+
+Stopped --> [*]
+````
+
+---
+
+# 25. Exit Criteria
+
+The Workspace Engine is considered complete when:
+
+• Every operation is scoped to a validated workspace.
+• Workspace isolation is fully enforced.
+• Path traversal outside the workspace is impossible through documented APIs.
+• Workspace lifecycle is deterministic.
+• Resource allocation is adaptive.
+• Recovery mechanisms preserve stability.
+• Every future subsystem can rely on the Workspace Engine as the authoritative owner of workspace state.
+
+====================================================================
+END OF DOCUMENT
+===============
+
+```
+```

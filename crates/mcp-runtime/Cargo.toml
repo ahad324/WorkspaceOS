@@ -1,0 +1,13 @@
+[package]
+name = "mcp-runtime"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+axum = { workspace = true }
+tokio = { workspace = true }
+workspace-engine = { path = "../workspace-engine" }
+security-engine = { path = "../security-engine" }

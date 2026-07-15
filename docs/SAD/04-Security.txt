@@ -1,0 +1,755 @@
+````text
+WorkspaceOS/docs/SAD/04-Security.txt
+
+====================================================================
+WorkspaceOS
+Software Architecture Document (SAD)
+
+Document ID      : SAD-004
+Document Name    : Security Architecture
+Version          : 1.0.0
+Status           : Draft
+Owner            : WorkspaceOS
+Classification   : Public
+====================================================================
+
+# 1. Purpose
+
+The Security Architecture defines the trust model, authentication,
+authorization, capability enforcement, isolation boundaries, audit
+mechanisms, secret management, and security policies of WorkspaceOS.
+
+Security SHALL be considered a foundational architectural concern rather
+than a feature.
+
+Every subsystem SHALL comply with the rules defined in this document.
+
+No implementation SHALL bypass the security model.
+
+--------------------------------------------------------------------
+
+# 2. Security Philosophy
+
+WorkspaceOS follows the following principles.
+
+• Default Deny
+• Least Privilege
+• Zero Trust
+• Explicit Authorization
+• Defense in Depth
+• Secure by Default
+• Fail Secure
+• Observable Security
+• Immutable Audit Trail
+• No Hidden Privileges
+
+Every request SHALL earn trust through verification.
+
+Trust SHALL never be assumed.
+
+--------------------------------------------------------------------
+
+# 3. Security Goals
+
+WorkspaceOS SHALL provide:
+
+• Strong authentication
+• Fine-grained authorization
+• Workspace isolation
+• Secure secret storage
+• Secure remote access
+• Secure plugin execution
+• Auditability
+• Replay resistance
+• Tamper detection
+• Safe AI execution
+
+--------------------------------------------------------------------
+
+# 4. Trust Boundaries
+
+WorkspaceOS defines five trust zones.
+
+Zone 0
+
+Operating System
+
+Highest privilege.
+
+Outside WorkspaceOS control.
+
+------------------------------------------------------------
+
+Zone 1
+
+WorkspaceOS Core
+
+Trusted runtime.
+
+Responsible for enforcing all security policies.
+
+------------------------------------------------------------
+
+Zone 2
+
+Internal Services
+
+Filesystem
+
+Git
+
+Terminal
+
+Search
+
+Index
+
+These services SHALL never be called directly.
+
+------------------------------------------------------------
+
+Zone 3
+
+Plugins
+
+Semi-trusted.
+
+Subject to sandbox restrictions.
+
+------------------------------------------------------------
+
+Zone 4
+
+External Clients
+
+AI
+
+Desktop
+
+CLI
+
+HTTP
+
+MCP
+
+Remote Users
+
+Lowest trust.
+
+Every request SHALL be verified.
+
+--------------------------------------------------------------------
+
+# 5. Request Pipeline
+
+Every incoming request SHALL pass through:
+
+Connection
+
+↓
+
+Authentication
+
+↓
+
+Rate Limiting
+
+↓
+
+Workspace Resolution
+
+↓
+
+Authorization
+
+↓
+
+Capability Evaluation
+
+↓
+
+Input Validation
+
+↓
+
+Execution
+
+↓
+
+Audit Logging
+
+↓
+
+Response
+
+No stage may be skipped.
+
+--------------------------------------------------------------------
+
+# 6. Authentication
+
+Authentication SHALL verify identity.
+
+Authentication SHALL NOT determine permissions.
+
+Supported authentication providers:
+
+• API Key
+• JWT
+• Local Session
+• Future OAuth
+• Future mTLS
+
+Authentication providers SHALL implement a common interface.
+
+--------------------------------------------------------------------
+
+# 7. Authentication Selection
+
+Default recommendation:
+
+Local Desktop
+
+↓
+
+Local Session
+
+------------------------------------------------------------
+
+Remote AI
+
+↓
+
+API Key
+
+------------------------------------------------------------
+
+Browser Dashboard
+
+↓
+
+JWT
+
+------------------------------------------------------------
+
+Enterprise
+
+↓
+
+OAuth or mTLS
+
+Authentication methods SHALL be independently configurable.
+
+--------------------------------------------------------------------
+
+# 8. API Keys
+
+API Keys SHALL support:
+
+Name
+
+Description
+
+Creation Date
+
+Expiration Date
+
+Last Used
+
+Workspace Scope
+
+Capability Scope
+
+Revocation
+
+Rotation
+
+Usage Statistics
+
+Keys SHALL be generated using cryptographically secure random generators.
+
+Keys SHALL never be stored in plaintext.
+
+Only secure hashes SHALL be persisted.
+
+--------------------------------------------------------------------
+
+# 9. JWT
+
+JWT SHALL primarily serve browser sessions.
+
+WorkspaceOS SHALL validate:
+
+Signature
+
+Expiration
+
+Issuer
+
+Audience
+
+Algorithm
+
+Invalid JWT tokens SHALL be rejected immediately.
+
+--------------------------------------------------------------------
+
+# 10. Authorization
+
+Authorization SHALL determine:
+
+Who
+
+Can perform
+
+Which operation
+
+Against
+
+Which workspace
+
+Authorization SHALL occur after authentication.
+
+--------------------------------------------------------------------
+
+# 11. Capability Model
+
+WorkspaceOS SHALL use capability-based authorization.
+
+Examples:
+
+filesystem.read
+
+filesystem.write
+
+filesystem.delete
+
+filesystem.rename
+
+terminal.execute
+
+terminal.kill
+
+git.read
+
+git.commit
+
+git.push
+
+plugin.install
+
+plugin.remove
+
+workspace.create
+
+workspace.delete
+
+Each capability SHALL be independently configurable.
+
+--------------------------------------------------------------------
+
+# 12. Capability Policies
+
+Capabilities SHALL support policies.
+
+Always Allow
+
+Always Deny
+
+Ask Every Time
+
+Ask Once
+
+Allow During Session
+
+Password Required
+
+Windows Hello Required (future)
+
+Biometric Required (future)
+
+Policies SHALL be evaluated before execution.
+
+--------------------------------------------------------------------
+
+# 13. Workspace Isolation
+
+Every capability SHALL execute inside exactly one workspace.
+
+Workspace boundaries SHALL never overlap.
+
+No request SHALL access resources outside the assigned workspace.
+
+Workspace IDs SHALL be mandatory.
+
+--------------------------------------------------------------------
+
+# 14. Filesystem Security
+
+Before every filesystem operation:
+
+Normalize path
+
+↓
+
+Resolve canonical path
+
+↓
+
+Verify workspace root
+
+↓
+
+Permission check
+
+↓
+
+Capability check
+
+↓
+
+Execute
+
+Path traversal attacks SHALL be impossible.
+
+Examples:
+
+../../Windows
+
+↓
+
+Reject
+
+Absolute path outside workspace
+
+↓
+
+Reject
+
+Symlink escape
+
+↓
+
+Reject
+
+--------------------------------------------------------------------
+
+# 15. Terminal Security
+
+Terminal execution represents a high-risk capability.
+
+WorkspaceOS SHALL support:
+
+Disabled
+
+Read-only
+
+Interactive
+
+Full execution
+
+Commands SHALL execute inside the workspace root unless explicitly configured otherwise.
+
+Administrative privileges SHALL never be granted automatically.
+
+--------------------------------------------------------------------
+
+# 16. Plugin Security
+
+Plugins SHALL execute with minimum required permissions.
+
+Plugin capabilities SHALL be declared before installation.
+
+Examples:
+
+Filesystem
+
+Network
+
+Terminal
+
+Workspace
+
+Secrets
+
+Users SHALL approve requested capabilities before activation.
+
+--------------------------------------------------------------------
+
+# 17. Secret Management
+
+WorkspaceOS SHALL never expose secrets to AI unless explicitly authorized.
+
+Supported secret types:
+
+API Keys
+
+Database Passwords
+
+SSH Keys
+
+Tokens
+
+Certificates
+
+Secrets SHALL be encrypted at rest using operating system secure storage where available.
+
+--------------------------------------------------------------------
+
+# 18. Audit Logging
+
+Every security-sensitive operation SHALL be logged.
+
+Examples:
+
+Authentication
+
+Authorization failure
+
+Workspace access
+
+File modification
+
+Terminal execution
+
+Plugin installation
+
+Configuration change
+
+Secret access
+
+Audit entries SHALL be immutable.
+
+--------------------------------------------------------------------
+
+# 19. Rate Limiting
+
+Every external client SHALL support configurable rate limits.
+
+Rate limiting SHALL mitigate:
+
+Abuse
+
+Brute force attacks
+
+Resource exhaustion
+
+Misconfigured AI loops
+
+Rate limiting SHALL be configurable per:
+
+Connection
+
+User
+
+API Key
+
+Workspace
+
+Capability
+
+--------------------------------------------------------------------
+
+# 20. Encryption
+
+Transport
+
+TLS 1.3 where remote connectivity is enabled.
+
+Storage
+
+Secrets encrypted at rest.
+
+Configuration MAY be encrypted.
+
+Audit logs MAY be signed to detect tampering.
+
+--------------------------------------------------------------------
+
+# 21. Tunnel Security
+
+Remote tunnels SHALL be disabled by default.
+
+Enabling remote access SHALL require explicit user action.
+
+Tunnel providers SHALL never bypass WorkspaceOS authentication.
+
+Every remote request SHALL still pass through the complete security pipeline.
+
+--------------------------------------------------------------------
+
+# 22. Security Events
+
+WorkspaceOS SHALL emit security events.
+
+Examples:
+
+AuthenticationSucceeded
+
+AuthenticationFailed
+
+AuthorizationDenied
+
+CapabilityDenied
+
+WorkspaceViolation
+
+RateLimitExceeded
+
+PluginBlocked
+
+TunnelConnected
+
+TunnelDisconnected
+
+Events SHALL be immutable.
+
+--------------------------------------------------------------------
+
+# 23. Threat Model
+
+WorkspaceOS SHALL defend against:
+
+Path traversal
+
+Privilege escalation
+
+Unauthorized workspace access
+
+Plugin abuse
+
+Secret leakage
+
+Replay attacks
+
+Credential theft
+
+Unauthorized terminal execution
+
+Remote abuse
+
+Configuration tampering
+
+Workspace escape
+
+Resource exhaustion
+
+Threats outside the scope include:
+
+Compromised operating systems
+
+Kernel exploits
+
+Physical device compromise
+
+These remain the responsibility of the underlying platform.
+
+--------------------------------------------------------------------
+
+# 24. Security Principles for AI
+
+AI systems SHALL be treated as untrusted clients.
+
+An AI SHALL never receive:
+
+Undeclared permissions
+
+Implicit filesystem access
+
+Automatic secret access
+
+Automatic administrative privileges
+
+Every operation SHALL be explicitly authorized through WorkspaceOS.
+
+--------------------------------------------------------------------
+
+# 25. Recovery
+
+If a security subsystem fails:
+
+Default behavior SHALL be DENY.
+
+Examples:
+
+Authorization service unavailable
+
+↓
+
+Reject request
+
+Capability evaluation failed
+
+↓
+
+Reject request
+
+Unknown workspace
+
+↓
+
+Reject request
+
+Authentication unavailable
+
+↓
+
+Reject request
+
+Fail-open behavior is prohibited.
+
+--------------------------------------------------------------------
+
+# 26. Mermaid Diagram
+
+```mermaid
+flowchart TD
+
+REQ[Incoming Request]
+
+AUTH[Authentication]
+
+RATE[Rate Limiter]
+
+WS[Workspace Validation]
+
+CAP[Capability Evaluation]
+
+VAL[Input Validation]
+
+EXEC[Execution]
+
+AUDIT[Audit Logging]
+
+RESP[Response]
+
+REQ --> AUTH
+AUTH --> RATE
+RATE --> WS
+WS --> CAP
+CAP --> VAL
+VAL --> EXEC
+EXEC --> AUDIT
+AUDIT --> RESP
+````
+
+---
+
+# 27. Exit Criteria
+
+The Security Architecture is considered complete when:
+
+• Every request is authenticated.
+• Every action is authorized.
+• Every operation is capability-controlled.
+• Every workspace is isolated.
+• Every sensitive event is audited.
+• Failures default to secure denial.
+• No subsystem can bypass the defined security pipeline.
+
+====================================================================
+END OF DOCUMENT
+===============
+
+```
+```

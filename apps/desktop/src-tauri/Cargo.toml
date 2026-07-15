@@ -1,0 +1,24 @@
+[package]
+name = "desktop-tauri-app"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+tauri = { version = "2.2.0" }
+tauri-build = { version = "2.2.0" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }
+
+workspace-engine = { path = "../../../crates/workspace-engine" }
+security-engine = { path = "../../../crates/security-engine" }
+index-engine = { path = "../../../crates/index-engine" }
+search-engine = { path = "../../../crates/search-engine" }
+mcp-runtime = { path = "../../../crates/mcp-runtime" }
+tunnel-manager = { path = "../../../crates/tunnel-manager" }
+plugin-system = { path = "../../../crates/plugin-system" }
+
+[build-dependencies]
+tauri-build = { version = "2.2.0" }

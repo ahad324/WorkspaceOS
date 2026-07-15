@@ -1,0 +1,374 @@
+```text id="adr003"
+WorkspaceOS/docs/ADR/ADR-003-SQLite.txt
+
+====================================================================
+WorkspaceOS
+Architecture Decision Record
+
+ADR-003
+Title       : SQLite as the Primary Metadata Store
+Status      : ACCEPTED
+Version     : 1.0
+Date         : TBD
+====================================================================
+
+# Context
+
+WorkspaceOS requires a persistent storage engine for metadata.
+
+This database SHALL NOT store user source code as the primary source of
+truth.
+
+Instead, it stores derived metadata that enables high-performance
+operations.
+
+Examples include:
+
+• File metadata
+• Symbol metadata
+• Dependency graph
+• Repository graph
+• Search indexes
+• Workspace configuration
+• Cache metadata
+• Performance metrics
+• Audit records
+• Plugin metadata
+
+The database must be:
+
+• Extremely fast
+• Reliable
+• Embedded
+• Cross-platform
+• ACID compliant
+• Easy to distribute
+• Low maintenance
+
+--------------------------------------------------------------------
+
+# Requirements
+
+The storage engine MUST provide:
+
+✓ Embedded deployment
+
+✓ Zero external server
+
+✓ ACID transactions
+
+✓ Excellent read performance
+
+✓ Good write performance
+
+✓ Mature ecosystem
+
+✓ Stable file format
+
+✓ SQL support
+
+✓ Backup capability
+
+✓ Cross-platform support
+
+--------------------------------------------------------------------
+
+# Options Considered
+
+Option A
+
+SQLite
+
+------------------------------------------------------------
+
+Option B
+
+PostgreSQL
+
+------------------------------------------------------------
+
+Option C
+
+RocksDB
+
+------------------------------------------------------------
+
+Option D
+
+LMDB
+
+------------------------------------------------------------
+
+Option E
+
+DuckDB
+
+------------------------------------------------------------
+
+Option F
+
+JSON Files
+
+--------------------------------------------------------------------
+
+# Evaluation
+
+SQLite
+
+Pros
+
+✓ Zero configuration
+
+✓ Embedded
+
+✓ Extremely mature
+
+✓ ACID compliant
+
+✓ Excellent read performance
+
+✓ Excellent tooling
+
+✓ Small footprint
+
+✓ Portable database file
+
+✓ WAL mode
+
+Cons
+
+• Single writer limitation
+  (acceptable for WorkspaceOS workloads)
+
+------------------------------------------------------------
+
+PostgreSQL
+
+Pros
+
+✓ Excellent scalability
+
+Cons
+
+• Requires separate server
+
+• Increased deployment complexity
+
+------------------------------------------------------------
+
+RocksDB
+
+Pros
+
+✓ Very fast key-value storage
+
+Cons
+
+• No SQL
+
+• More complex querying
+
+------------------------------------------------------------
+
+LMDB
+
+Pros
+
+✓ Extremely fast
+
+Cons
+
+• Key-value only
+
+• Less flexible schema evolution
+
+------------------------------------------------------------
+
+DuckDB
+
+Pros
+
+✓ Excellent analytics
+
+Cons
+
+• Optimized for OLAP rather than WorkspaceOS metadata workloads
+
+------------------------------------------------------------
+
+JSON Files
+
+Pros
+
+✓ Simple
+
+Cons
+
+• Poor scalability
+
+• Weak concurrency
+
+• No transactional guarantees
+
+--------------------------------------------------------------------
+
+# Decision
+
+WorkspaceOS SHALL use SQLite as the primary metadata database.
+
+SQLite SHALL operate in WAL (Write-Ahead Logging) mode.
+
+--------------------------------------------------------------------
+
+# Rationale
+
+SQLite provides the best combination of:
+
+Performance
+
+Reliability
+
+Simplicity
+
+Portability
+
+Maintainability
+
+Operational cost
+
+Its embedded architecture perfectly matches WorkspaceOS, eliminating the
+need for users to install or manage a separate database server.
+
+--------------------------------------------------------------------
+
+# Database Responsibilities
+
+SQLite SHALL store:
+
+Workspace metadata
+
+Repository metadata
+
+Index metadata
+
+File metadata
+
+Dependency metadata
+
+Search indexes
+
+Context cache metadata
+
+Plugin registry
+
+Audit logs
+
+Performance history
+
+Configuration
+
+SQLite SHALL NOT replace the user's source code.
+
+The filesystem remains the authoritative source for repository content.
+
+--------------------------------------------------------------------
+
+# Performance Strategy
+
+WorkspaceOS SHALL optimize SQLite through:
+
+• WAL mode
+• Prepared statements
+• Parameterized queries
+• Batched writes
+• Indexed lookups
+• Transaction grouping
+• Connection pooling where appropriate
+• Periodic VACUUM and ANALYZE (configurable)
+
+Database schema changes SHALL be versioned through migrations.
+
+--------------------------------------------------------------------
+
+# Engineering Rules
+
+The database layer SHALL:
+
+Use parameterized queries exclusively.
+
+Avoid string-concatenated SQL.
+
+Batch related writes.
+
+Reuse prepared statements.
+
+Keep transactions short.
+
+Avoid long-running write locks.
+
+Never expose raw SQL outside the data access layer.
+
+--------------------------------------------------------------------
+
+# Security
+
+Sensitive information SHALL be protected through:
+
+• Parameterized queries
+• Strict schema validation
+• Access control enforced by the Core
+• Optional encrypted secret storage outside SQLite where appropriate
+
+SQLite is not responsible for authorization decisions.
+
+--------------------------------------------------------------------
+
+# Consequences
+
+Positive
+
+✓ Extremely easy deployment
+
+✓ No external services
+
+✓ Low memory usage
+
+✓ Excellent read latency
+
+✓ Reliable ACID guarantees
+
+✓ Mature ecosystem
+
+✓ Cross-platform portability
+
+Negative
+
+• Single-writer architecture
+
+This limitation is acceptable because WorkspaceOS workloads are
+predominantly read-heavy with relatively small, batched writes.
+
+--------------------------------------------------------------------
+
+# Future Review
+
+This decision SHALL only be reconsidered if:
+
+• WorkspaceOS evolves into a distributed multi-node system requiring
+concurrent networked writes, or
+• Benchmark evidence demonstrates that SQLite no longer satisfies
+performance or scalability requirements.
+
+Any migration SHALL require:
+
+• Benchmark comparisons
+• Updated ADR
+• Data migration strategy
+• Architecture review
+
+====================================================================
+Decision: ACCEPTED
+====================================================================
+```
+
+**Small note for the future:** I would actually refine some of the technology choices compared to what we initially documented. After reviewing the architecture in depth, I think we can make WorkspaceOS even stronger by using things like **BLAKE3 for hashing**, **notify + notify-debouncer-full** for filesystem watching, **moka** (or another benchmark-selected cache), **tantivy** for full-text search where appropriate, and **tree-sitter** for language-aware parsing. We'll capture each of those in their own ADRs so every choice is benchmark-backed rather than preference-based.

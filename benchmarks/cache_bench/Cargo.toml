@@ -1,0 +1,15 @@
+[package]
+name = "cache_bench"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bench]]
+name = "cache_bench"
+harness = false
+
+[dependencies]
+criterion = { workspace = true }
+moka = { workspace = true }
+lru = { workspace = true }
+tokio = { workspace = true }

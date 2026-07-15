@@ -1,0 +1,351 @@
+```text id="adr002"
+WorkspaceOS/docs/ADR/ADR-002-Tauri.txt
+
+====================================================================
+WorkspaceOS
+Architecture Decision Record
+
+ADR-002
+Title       : Tauri as the Desktop Runtime
+Status      : ACCEPTED
+Version     : 1.0
+Date         : TBD
+====================================================================
+
+# Context
+
+WorkspaceOS requires a native desktop application that serves as the
+management interface for the WorkspaceOS Core.
+
+The Desktop Application is responsible for:
+
+• Workspace Management
+• Security Configuration
+• Performance Monitoring
+• Diagnostics
+• Tunnel Management
+• Plugin Management
+• Logging
+• Settings
+
+The Desktop itself is NOT responsible for business logic.
+
+Business logic SHALL remain inside the WorkspaceOS Core.
+
+The Desktop should be:
+
+• Extremely lightweight
+• Fast to start
+• Low memory
+• Native
+• Cross-platform
+• Secure
+• Maintainable
+
+--------------------------------------------------------------------
+
+# Requirements
+
+The Desktop Runtime MUST provide:
+
+✓ Native performance
+
+✓ Cross-platform support
+
+✓ Small application size
+
+✓ Secure IPC
+
+✓ Native operating system APIs
+
+✓ Excellent Rust integration
+
+✓ Stable ecosystem
+
+✓ Long-term maintainability
+
+--------------------------------------------------------------------
+
+# Options Considered
+
+Option A
+
+Tauri
+
+------------------------------------------------------------
+
+Option B
+
+Electron
+
+------------------------------------------------------------
+
+Option C
+
+Qt (C++)
+
+------------------------------------------------------------
+
+Option D
+
+Flutter Desktop
+
+------------------------------------------------------------
+
+Option E
+
+Native WinUI / Cocoa / GTK
+
+--------------------------------------------------------------------
+
+# Evaluation
+
+Tauri
+
+Pros
+
+✓ Rust backend
+
+✓ Very low memory usage
+
+✓ Small binaries
+
+✓ Native system APIs
+
+✓ Secure IPC
+
+✓ Excellent startup speed
+
+✓ Excellent integration with Rust
+
+✓ Cross-platform
+
+Cons
+
+• Smaller ecosystem than Electron
+
+------------------------------------------------------------
+
+Electron
+
+Pros
+
+✓ Huge ecosystem
+
+✓ Mature tooling
+
+✓ Easy frontend development
+
+Cons
+
+• Large application size
+
+• High idle memory usage
+
+• Chromium dependency
+
+• Node.js runtime
+
+------------------------------------------------------------
+
+Qt
+
+Pros
+
+✓ Excellent performance
+
+✓ Mature
+
+Cons
+
+• C++ complexity
+
+• Larger development effort
+
+------------------------------------------------------------
+
+Flutter
+
+Pros
+
+✓ Beautiful UI
+
+Cons
+
+• Larger runtime
+
+• Less natural Rust integration
+
+------------------------------------------------------------
+
+Native Frameworks
+
+Pros
+
+✓ Best platform integration
+
+Cons
+
+• Multiple implementations required
+
+• Increased maintenance cost
+
+--------------------------------------------------------------------
+
+# Decision
+
+WorkspaceOS SHALL use Tauri v2 as the Desktop Runtime.
+
+--------------------------------------------------------------------
+
+# Rationale
+
+Tauri provides the best balance between:
+
+Performance
+
+Memory usage
+
+Binary size
+
+Security
+
+Developer productivity
+
+Rust integration
+
+Cross-platform support
+
+The use of Rust for both the Core and Desktop backend reduces
+architectural complexity and enables shared libraries.
+
+--------------------------------------------------------------------
+
+# Architecture
+
+User
+
+↓
+
+React UI
+
+↓
+
+Tauri IPC
+
+↓
+
+Rust Commands
+
+↓
+
+WorkspaceOS Core
+
+The Desktop SHALL communicate exclusively through the IPC layer.
+
+No business logic SHALL reside in the frontend.
+
+--------------------------------------------------------------------
+
+# Consequences
+
+Positive
+
+✓ Very small installer
+
+✓ Native performance
+
+✓ Low idle CPU
+
+✓ Low idle memory
+
+✓ Shared Rust code
+
+✓ Strong security model
+
+✓ Cross-platform
+
+Negative
+
+• Smaller ecosystem than Electron
+
+• Requires familiarity with Rust and Tauri
+
+These tradeoffs are acceptable.
+
+--------------------------------------------------------------------
+
+# Engineering Rules
+
+The Desktop SHALL:
+
+Remain thin.
+
+Contain presentation logic only.
+
+Never access the filesystem directly.
+
+Never access SQLite directly.
+
+Never implement authentication logic.
+
+Never bypass the WorkspaceOS Core.
+
+All operations SHALL use strongly typed IPC contracts.
+
+--------------------------------------------------------------------
+
+# Performance Targets
+
+Cold Startup
+
+Target
+
+< 2 seconds
+
+Warm Startup
+
+Target
+
+< 500 ms
+
+Idle Memory (UI)
+
+Target
+
+< 100 MB
+
+Idle CPU
+
+Target
+
+Approximately 0%
+
+Navigation
+
+Target
+
+< 16 ms
+
+--------------------------------------------------------------------
+
+# Future Review
+
+This decision SHALL only be reconsidered if:
+
+• Tauri becomes unmaintained.
+• A future runtime demonstrates objectively superior characteristics in
+performance, security, maintainability, ecosystem maturity, and
+cross-platform support.
+
+Any replacement SHALL require:
+
+• Comprehensive benchmark comparisons
+• Updated ADR
+• Migration plan
+• Architecture review
+
+====================================================================
+Decision: ACCEPTED
+====================================================================
+```

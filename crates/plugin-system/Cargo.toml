@@ -1,0 +1,9 @@
+[package]
+name = "plugin-system"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { workspace = true }
+tracing = { workspace = true }
+workspace-engine = { path = "../workspace-engine" }

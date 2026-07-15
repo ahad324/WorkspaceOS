@@ -1,0 +1,313 @@
+```text id="adr004"
+WorkspaceOS/docs/ADR/ADR-004-Tokio.txt
+
+====================================================================
+WorkspaceOS
+Architecture Decision Record
+
+ADR-004
+Title       : Tokio as the Asynchronous Runtime
+Status      : ACCEPTED
+Version     : 1.0
+Date         : TBD
+====================================================================
+
+# Context
+
+WorkspaceOS performs many operations concurrently.
+
+Examples include:
+
+• Filesystem watching
+• Repository indexing
+• MCP request handling
+• Tunnel management
+• Background scheduling
+• Context generation
+• SQLite operations
+• Plugin communication
+• IPC requests
+• Network communication
+
+These workloads require a modern asynchronous runtime capable of
+efficiently utilizing system resources while maintaining predictable
+latency.
+
+--------------------------------------------------------------------
+
+# Requirements
+
+The runtime MUST provide:
+
+✓ Excellent performance
+
+✓ Low scheduling overhead
+
+✓ Mature ecosystem
+
+✓ Cross-platform support
+
+✓ Async networking
+
+✓ Async filesystem compatibility
+
+✓ Cancellation support
+
+✓ Timers
+
+✓ Synchronization primitives
+
+✓ High reliability
+
+--------------------------------------------------------------------
+
+# Options Considered
+
+Option A
+
+Tokio
+
+------------------------------------------------------------
+
+Option B
+
+async-std
+
+------------------------------------------------------------
+
+Option C
+
+smol
+
+------------------------------------------------------------
+
+Option D
+
+Custom runtime
+
+--------------------------------------------------------------------
+
+# Evaluation
+
+Tokio
+
+Pros
+
+✓ Industry standard
+
+✓ Excellent ecosystem
+
+✓ Highly optimized scheduler
+
+✓ Mature networking stack
+
+✓ Robust synchronization primitives
+
+✓ Excellent tracing support
+
+✓ Stable
+
+✓ Large community
+
+Cons
+
+• Larger API surface
+
+------------------------------------------------------------
+
+async-std
+
+Pros
+
+✓ Simple API
+
+Cons
+
+• Smaller ecosystem
+
+• Less industry adoption
+
+------------------------------------------------------------
+
+smol
+
+Pros
+
+✓ Lightweight
+
+Cons
+
+• Smaller ecosystem
+
+• Fewer integrations
+
+------------------------------------------------------------
+
+Custom Runtime
+
+Pros
+
+✓ Full control
+
+Cons
+
+• Extremely high maintenance cost
+
+• Reinvents existing solutions
+
+--------------------------------------------------------------------
+
+# Decision
+
+WorkspaceOS SHALL use Tokio as the asynchronous runtime.
+
+--------------------------------------------------------------------
+
+# Rationale
+
+Tokio provides the strongest balance of:
+
+Performance
+
+Scalability
+
+Reliability
+
+Ecosystem maturity
+
+Developer tooling
+
+Long-term support
+
+Its widespread adoption ensures compatibility with the majority of the
+Rust ecosystem.
+
+--------------------------------------------------------------------
+
+# Runtime Responsibilities
+
+Tokio SHALL manage:
+
+Async task scheduling
+
+Network I/O
+
+Timers
+
+Background workers
+
+Filesystem event processing
+
+MCP request handling
+
+Tunnel connections
+
+Plugin communication
+
+Graceful shutdown
+
+--------------------------------------------------------------------
+
+# Engineering Rules
+
+Async SHALL be used only when it provides measurable value.
+
+CPU-intensive work SHALL NOT block async executors.
+
+Long-running CPU tasks SHALL execute using dedicated worker threads
+(e.g., `spawn_blocking` or a dedicated compute pool where appropriate).
+
+Avoid unnecessary task spawning.
+
+Avoid deeply nested async chains.
+
+Prefer structured concurrency.
+
+Cancellation SHALL be supported wherever practical.
+
+--------------------------------------------------------------------
+
+# Performance Guidelines
+
+The runtime SHALL prioritize:
+
+Low task scheduling latency
+
+Low idle CPU
+
+Minimal wakeups
+
+Efficient task batching
+
+Backpressure handling
+
+Graceful degradation under load
+
+Background work SHALL never significantly impact interactive operations.
+
+--------------------------------------------------------------------
+
+# Observability
+
+Tokio tasks SHALL integrate with:
+
+Structured logging
+
+Tracing spans
+
+Performance metrics
+
+Task timing
+
+Cancellation metrics
+
+Error reporting
+
+This enables profiling and debugging of asynchronous behavior.
+
+--------------------------------------------------------------------
+
+# Consequences
+
+Positive
+
+✓ Excellent scalability
+
+✓ Mature ecosystem
+
+✓ High performance
+
+✓ Strong community support
+
+✓ Excellent integration with Axum, Tauri and modern Rust libraries
+
+Negative
+
+• Additional learning curve for async programming
+
+• Potential complexity if async is overused
+
+These risks are mitigated through engineering standards and code review.
+
+--------------------------------------------------------------------
+
+# Future Review
+
+This decision SHALL only be reconsidered if:
+
+• Tokio becomes unmaintained, or
+• A demonstrably superior async runtime emerges with measurable
+advantages in performance, reliability, ecosystem compatibility and
+maintainability.
+
+Any replacement SHALL require:
+
+• Benchmark comparisons
+• Updated ADR
+• Migration strategy
+• Architecture review
+
+====================================================================
+Decision: ACCEPTED
+====================================================================
+```

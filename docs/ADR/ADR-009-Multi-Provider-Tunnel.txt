@@ -1,0 +1,400 @@
+```text id="adr009"
+WorkspaceOS/docs/ADR/ADR-009-Multi-Provider-Tunnel.txt
+
+====================================================================
+WorkspaceOS
+Architecture Decision Record
+
+ADR-009
+Title       : Multi-Provider Tunnel Architecture
+Status      : ACCEPTED
+Version     : 1.0
+Date         : TBD
+====================================================================
+
+# Context
+
+WorkspaceOS is designed primarily as a local application.
+
+However, many AI providers require access to the local MCP server through
+the public Internet.
+
+Examples include:
+
+• Grok
+• ChatGPT
+• Claude
+• Gemini
+• Qwen
+• Future cloud-hosted AI platforms
+
+Rather than requiring users to manually expose ports or configure reverse
+proxies, WorkspaceOS SHALL provide an integrated tunnel subsystem.
+
+The tunnel subsystem is responsible only for connectivity.
+
+It SHALL NOT provide authentication, authorization or security
+enforcement.
+
+Those responsibilities remain within the WorkspaceOS Core.
+
+--------------------------------------------------------------------
+
+# Requirements
+
+The tunnel system MUST provide:
+
+✓ Provider independence
+
+✓ Automatic startup
+
+✓ Automatic reconnection
+
+✓ Health monitoring
+
+✓ Secure TLS transport
+
+✓ Low latency
+
+✓ High availability
+
+✓ Configuration flexibility
+
+✓ Easy provider replacement
+
+✓ Minimal runtime overhead
+
+--------------------------------------------------------------------
+
+# Options Considered
+
+Option A
+
+Multi-Provider Abstraction Layer
+
+------------------------------------------------------------
+
+Option B
+
+ngrok only
+
+------------------------------------------------------------
+
+Option C
+
+Cloudflare Tunnel only
+
+------------------------------------------------------------
+
+Option D
+
+Tailscale only
+
+------------------------------------------------------------
+
+Option E
+
+Self-hosted reverse proxy only
+
+--------------------------------------------------------------------
+
+# Evaluation
+
+Multi-Provider
+
+Pros
+
+✓ No vendor lock-in
+
+✓ Easy provider switching
+
+✓ High availability
+
+✓ Future expansion
+
+✓ User choice
+
+Cons
+
+• Slightly more implementation complexity
+
+------------------------------------------------------------
+
+ngrok
+
+Pros
+
+✓ Mature
+
+✓ Easy setup
+
+Cons
+
+• Vendor dependency
+
+------------------------------------------------------------
+
+Cloudflare Tunnel
+
+Pros
+
+✓ Excellent performance
+
+✓ Strong reliability
+
+Cons
+
+• Cloudflare dependency
+
+------------------------------------------------------------
+
+Tailscale
+
+Pros
+
+✓ Excellent for private networking
+
+Cons
+
+• Different use case
+
+• Not ideal for public integrations
+
+------------------------------------------------------------
+
+Self-hosted Proxy
+
+Pros
+
+✓ Full control
+
+Cons
+
+• Higher operational burden
+
+• Increased user complexity
+
+--------------------------------------------------------------------
+
+# Decision
+
+WorkspaceOS SHALL implement a provider-agnostic Tunnel Manager.
+
+Tunnel providers SHALL be implemented through a common abstraction.
+
+The initial providers SHALL include:
+
+• Cloudflare Tunnel
+• ngrok
+
+Future providers MAY include:
+
+• Tailscale
+• Local reverse proxy
+• Enterprise gateway
+• Custom providers
+
+--------------------------------------------------------------------
+
+# Architecture
+
+AI Provider
+
+↓
+
+Public Tunnel
+
+↓
+
+Tunnel Adapter
+
+↓
+
+Tunnel Manager
+
+↓
+
+WorkspaceOS Core
+
+↓
+
+MCP Runtime
+
+The Tunnel Manager SHALL remain independent of the MCP implementation.
+
+--------------------------------------------------------------------
+
+# Provider Interface
+
+Every provider SHALL implement:
+
+Initialize
+
+Start
+
+Stop
+
+Reconnect
+
+Health Check
+
+Current URL
+
+Metrics
+
+Shutdown
+
+Providers SHALL expose identical behavior through a common interface.
+
+--------------------------------------------------------------------
+
+# Automatic Lifecycle
+
+The Tunnel Manager SHALL support:
+
+Automatic startup
+
+Automatic shutdown
+
+Automatic reconnection
+
+Provider failover
+
+Health monitoring
+
+Connection validation
+
+Graceful recovery
+
+No manual command-line interaction should be required for normal usage.
+
+--------------------------------------------------------------------
+
+# Configuration
+
+Users SHALL be able to configure:
+
+Preferred provider
+
+Authentication credentials
+
+Region (where supported)
+
+Reconnect policy
+
+Retry intervals
+
+Health-check interval
+
+Automatic startup
+
+Fallback providers
+
+Configuration SHALL remain externalized.
+
+--------------------------------------------------------------------
+
+# Security
+
+Tunnel providers SHALL NEVER:
+
+Authenticate users
+
+Authorize requests
+
+Enforce Workspace permissions
+
+Interpret MCP requests
+
+All security SHALL remain inside WorkspaceOS Core.
+
+Compromise of a tunnel provider SHALL NOT bypass WorkspaceOS security.
+
+--------------------------------------------------------------------
+
+# Performance Guidelines
+
+The Tunnel Manager SHALL optimize for:
+
+Fast connection establishment
+
+Low latency
+
+Minimal bandwidth overhead
+
+Low idle CPU
+
+Automatic recovery
+
+Efficient heartbeat intervals
+
+The tunnel subsystem SHALL remain dormant when disabled.
+
+--------------------------------------------------------------------
+
+# Monitoring
+
+The Tunnel Manager SHALL expose:
+
+Current provider
+
+Connection status
+
+Public endpoint
+
+Uptime
+
+Reconnect count
+
+Latency
+
+Health status
+
+Traffic statistics (where available)
+
+These metrics SHALL be visible in the Desktop Application.
+
+--------------------------------------------------------------------
+
+# Consequences
+
+Positive
+
+✓ Vendor independence
+
+✓ Easy provider switching
+
+✓ High resilience
+
+✓ Better user experience
+
+✓ Future extensibility
+
+Negative
+
+• Additional abstraction layer
+
+The abstraction cost is minimal and justified by the long-term
+flexibility it provides.
+
+--------------------------------------------------------------------
+
+# Future Review
+
+This decision SHALL only be reconsidered if:
+
+• The tunnel landscape changes significantly, or
+• A superior transport architecture emerges that provides measurable
+advantages in reliability, performance and maintainability.
+
+Any change SHALL require:
+
+• Benchmark comparisons
+• Updated ADR
+• Migration strategy
+• Architecture review
+
+====================================================================
+Decision: ACCEPTED
+====================================================================
+```

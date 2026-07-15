@@ -1,0 +1,780 @@
+````text
+WorkspaceOS/docs/SAD/07-Context-Engine.txt
+
+====================================================================
+WorkspaceOS
+Software Architecture Document (SAD)
+
+Document ID      : SAD-007
+Document Name    : Context Engine
+Version          : 1.0.0
+Status           : Draft
+Owner            : WorkspaceOS
+Classification   : Public
+====================================================================
+
+# IMPORTANT NOTE
+
+The Context Engine is the defining feature of WorkspaceOS.
+
+Most existing AI tooling provides either:
+
+• Raw filesystem access
+or
+• Raw repository search
+
+WorkspaceOS SHALL instead provide intelligent, minimal, relevant,
+deterministic context.
+
+The objective is NOT to expose the repository.
+
+The objective is to expose ONLY the information required to solve the
+current task.
+
+Every design decision within this document SHALL prioritize context
+quality over context quantity.
+
+--------------------------------------------------------------------
+
+# 1. Purpose
+
+The Context Engine is responsible for transforming a software repository
+into structured knowledge that AI systems can consume efficiently.
+
+Instead of allowing AI models to repeatedly search and read thousands of
+files, the Context Engine SHALL understand repository structure,
+relationships, dependencies, ownership, symbols, architecture, and
+runtime characteristics.
+
+The Context Engine SHALL become the intelligence layer between the
+repository and every AI client.
+
+--------------------------------------------------------------------
+
+# 2. Goals
+
+The Context Engine SHALL provide:
+
+• Repository understanding
+• Minimal context extraction
+• Intelligent relevance ranking
+• Dependency awareness
+• Architecture awareness
+• Symbol awareness
+• Token optimization
+• Incremental updates
+• Fast retrieval
+• Deterministic responses
+
+--------------------------------------------------------------------
+
+# 3. Non Goals
+
+The Context Engine SHALL NOT:
+
+Generate code
+
+Modify repositories
+
+Execute terminal commands
+
+Read arbitrary files without authorization
+
+Replace language servers
+
+Replace IDE indexing
+
+Act as an AI model
+
+Its responsibility is understanding—not generation.
+
+--------------------------------------------------------------------
+
+# 4. Architectural Position
+
+AI Client
+
+↓
+
+MCP
+
+↓
+
+Context Engine
+
+↓
+
+Workspace Engine
+
+↓
+
+Index Engine
+
+↓
+
+Filesystem
+
+The Context Engine SHALL consume structured information rather than raw
+filesystem data whenever possible.
+
+--------------------------------------------------------------------
+
+# 5. Core Philosophy
+
+WorkspaceOS SHALL NEVER answer:
+
+"Here are all 15,000 files."
+
+Instead it SHALL answer:
+
+"These 18 files are relevant."
+
+This dramatically reduces:
+
+Latency
+
+Memory
+
+Disk I/O
+
+Token consumption
+
+AI hallucination
+
+--------------------------------------------------------------------
+
+# 6. Context Pipeline
+
+AI Request
+
+↓
+
+Intent Detection
+
+↓
+
+Workspace Resolution
+
+↓
+
+Capability Validation
+
+↓
+
+Repository Analysis
+
+↓
+
+Dependency Resolution
+
+↓
+
+Relevance Ranking
+
+↓
+
+Token Budget Planning
+
+↓
+
+Context Assembly
+
+↓
+
+Response
+
+--------------------------------------------------------------------
+
+# 7. Intent Categories
+
+The Context Engine SHALL classify requests into categories.
+
+Examples:
+
+Bug Fix
+
+Feature Development
+
+Refactoring
+
+Architecture Review
+
+Dependency Analysis
+
+Security Review
+
+Performance Analysis
+
+Database
+
+API
+
+Frontend
+
+Backend
+
+Testing
+
+Documentation
+
+DevOps
+
+Different intents MAY require different context strategies.
+
+--------------------------------------------------------------------
+
+# 8. Repository Model
+
+The repository SHALL be represented as a graph.
+
+Nodes
+
+Files
+
+Directories
+
+Symbols
+
+Packages
+
+Services
+
+Modules
+
+Classes
+
+Functions
+
+Interfaces
+
+Routes
+
+Schemas
+
+Edges
+
+Imports
+
+Exports
+
+Calls
+
+Inheritance
+
+Dependency
+
+Ownership
+
+Configuration
+
+Runtime Relationships
+
+The graph SHALL be incrementally maintained.
+
+--------------------------------------------------------------------
+
+# 9. Repository Knowledge
+
+The Context Engine SHALL understand:
+
+Languages
+
+Frameworks
+
+Package Managers
+
+Build Systems
+
+Environment Files
+
+Configuration Files
+
+Entry Points
+
+Dependency Trees
+
+Runtime Structure
+
+Workspace Layout
+
+--------------------------------------------------------------------
+
+# 10. Context Sources
+
+Context MAY originate from:
+
+Filesystem
+
+Metadata Index
+
+Dependency Graph
+
+Git History
+
+Configuration
+
+Language Analysis
+
+Plugin Providers
+
+Future Semantic Providers
+
+The engine SHALL prefer indexed data whenever possible.
+
+--------------------------------------------------------------------
+
+# 11. Relevance Ranking
+
+Every candidate SHALL receive a relevance score.
+
+Example factors:
+
+Direct symbol match
+
+Import distance
+
+Call graph distance
+
+Directory proximity
+
+Recent modifications
+
+Git ownership
+
+Framework importance
+
+Configuration references
+
+Entry point distance
+
+Historical access
+
+Higher-ranked information SHALL be returned first.
+
+--------------------------------------------------------------------
+
+# 12. Context Assembly
+
+The engine SHALL assemble context in layers.
+
+Layer 1
+
+Essential
+
+------------------------------------------------------------
+
+Layer 2
+
+Supporting
+
+------------------------------------------------------------
+
+Layer 3
+
+Related
+
+------------------------------------------------------------
+
+Layer 4
+
+Optional
+
+Context SHALL stop assembling once the configured token budget is reached.
+
+--------------------------------------------------------------------
+
+# 13. Token Budget
+
+Every request SHALL receive a configurable token budget.
+
+The engine SHALL maximize useful information within the available budget.
+
+If the budget is exceeded:
+
+Lower-priority context SHALL be removed first.
+
+Critical information SHALL never be discarded before optional context.
+
+--------------------------------------------------------------------
+
+# 14. Incremental Updates
+
+The Context Engine SHALL never rebuild repository knowledge from scratch
+unless necessary.
+
+Filesystem Event
+
+↓
+
+Affected Symbols
+
+↓
+
+Affected Dependencies
+
+↓
+
+Affected Context
+
+↓
+
+Update Graph
+
+↓
+
+Ready
+
+Only impacted portions SHALL be recomputed.
+
+--------------------------------------------------------------------
+
+# 15. Architecture Awareness
+
+The Context Engine SHALL identify architectural concepts.
+
+Examples:
+
+Controllers
+
+Services
+
+Repositories
+
+Middleware
+
+Authentication
+
+Authorization
+
+Caching
+
+Configuration
+
+Database
+
+Routing
+
+Workers
+
+Queues
+
+Background Jobs
+
+The engine SHALL expose architecture, not merely files.
+
+--------------------------------------------------------------------
+
+# 16. Symbol Awareness
+
+The engine SHALL understand symbols.
+
+Examples:
+
+Function
+
+Method
+
+Class
+
+Interface
+
+Enum
+
+Type
+
+Struct
+
+Trait
+
+Variable
+
+Constant
+
+Macro
+
+Route
+
+Schema
+
+Symbol relationships SHALL be indexed.
+
+--------------------------------------------------------------------
+
+# 17. Dependency Awareness
+
+The engine SHALL maintain dependency relationships.
+
+Examples:
+
+Imports
+
+Exports
+
+Function Calls
+
+Package Dependencies
+
+Runtime Dependencies
+
+Configuration Dependencies
+
+Dependency traversal SHALL be incremental.
+
+--------------------------------------------------------------------
+
+# 18. Intelligent Context Reduction
+
+WorkspaceOS SHALL reduce redundant information.
+
+Examples:
+
+Repeated imports
+
+Duplicate definitions
+
+Generated code
+
+Vendor files
+
+Temporary files
+
+Build artifacts
+
+The objective is maximizing information density.
+
+--------------------------------------------------------------------
+
+# 19. Generated Files
+
+The Context Engine SHOULD identify generated artifacts.
+
+Examples:
+
+dist/
+
+build/
+
+coverage/
+
+node_modules/
+
+target/
+
+Generated files SHALL be ignored unless explicitly requested.
+
+--------------------------------------------------------------------
+
+# 20. Language Awareness
+
+The engine SHALL support language providers.
+
+Examples:
+
+TypeScript
+
+JavaScript
+
+Rust
+
+Go
+
+Python
+
+Java
+
+C#
+
+C++
+
+Future providers SHALL integrate through a common abstraction.
+
+--------------------------------------------------------------------
+
+# 21. Context Cache
+
+The Context Engine SHALL maintain dedicated caches.
+
+Intent Cache
+
+Symbol Cache
+
+Dependency Cache
+
+Architecture Cache
+
+Context Cache
+
+Caches SHALL support incremental invalidation.
+
+--------------------------------------------------------------------
+
+# 22. Predictive Context
+
+When idle, the engine MAY precompute context likely to be requested.
+
+Examples:
+
+Frequently modified modules
+
+Recently opened files
+
+Entry points
+
+Authentication flow
+
+Database models
+
+Speculative work SHALL stop immediately when foreground activity begins.
+
+--------------------------------------------------------------------
+
+# 23. Explainability
+
+The Context Engine SHALL be able to explain WHY information was selected.
+
+Example:
+
+Selected because:
+
+Direct dependency
+
+Referenced by requested symbol
+
+Imported by entry point
+
+Recently modified
+
+Configuration dependency
+
+This improves transparency and debugging.
+
+--------------------------------------------------------------------
+
+# 24. Security
+
+The Context Engine SHALL never bypass Workspace permissions.
+
+Context SHALL only include resources the requesting client is authorized
+to access.
+
+Secrets SHALL never appear unless explicitly requested and authorized.
+
+--------------------------------------------------------------------
+
+# 25. Performance Targets
+
+Context Selection
+
+Target
+
+< 20 ms after indexed lookup
+
+------------------------------------------------------------
+
+Context Assembly
+
+Target
+
+< 100 ms
+
+------------------------------------------------------------
+
+Dependency Traversal
+
+Target
+
+Incremental only
+
+------------------------------------------------------------
+
+Repeated Requests
+
+Target
+
+Primarily cache hits
+
+--------------------------------------------------------------------
+
+# 26. Future Expansion
+
+Future versions MAY include:
+
+Semantic embeddings
+
+Hybrid vector search
+
+Cross-workspace knowledge
+
+Language Server integration
+
+AI-generated architecture summaries
+
+Execution trace awareness
+
+Code ownership analytics
+
+These capabilities SHALL remain optional and modular.
+
+--------------------------------------------------------------------
+
+# 27. Mermaid Diagram
+
+```mermaid
+flowchart TD
+
+REQ[AI Request]
+
+INTENT[Intent Detection]
+
+INDEX[Index Engine]
+
+GRAPH[Repository Graph]
+
+RANK[Relevance Ranking]
+
+BUDGET[Token Budget]
+
+CTX[Context Assembly]
+
+RESULT[Optimized Context]
+
+REQ --> INTENT
+INTENT --> INDEX
+INDEX --> GRAPH
+GRAPH --> RANK
+RANK --> BUDGET
+BUDGET --> CTX
+CTX --> RESULT
+````
+
+---
+
+# 28. Exit Criteria
+
+The Context Engine is considered complete when:
+
+• Repository understanding is graph-based.
+• Context is relevance-ranked.
+• Token usage is optimized.
+• Repository updates are incremental.
+• Architecture and dependency awareness are available.
+• Context generation is deterministic, explainable, and performant.
+• AI systems consistently receive the minimum information necessary to
+complete authorized tasks.
+
+====================================================================
+END OF DOCUMENT
+===============
+
+```
+
+**Important architectural improvement (to incorporate later in an ADR):** rather than relying solely on keyword matching for relevance, the Context Engine should support a **hybrid ranking pipeline**:
+
+1. Structural relevance (dependency graph, imports, call graph).
+2. Symbol relevance.
+3. Git/history relevance.
+4. Language-aware relevance.
+5. Optional semantic ranking (embeddings) as an enhancement, **not** a dependency.
+
+This keeps WorkspaceOS extremely fast on low-end systems while allowing richer context on capable machines without making vector search mandatory.
+```

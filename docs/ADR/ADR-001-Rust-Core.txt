@@ -1,0 +1,334 @@
+```text
+WorkspaceOS/docs/ADR/ADR-001-Rust-Core.txt
+
+====================================================================
+WorkspaceOS
+Architecture Decision Record
+
+ADR-001
+Title      : Rust as the Core Implementation Language
+Status     : Accepted
+Version    : 1.0
+Date        : TBD
+====================================================================
+
+# Context
+
+WorkspaceOS is intended to become a long-lived infrastructure project.
+
+The Core Runtime is responsible for:
+
+• Workspace Management
+• Security
+• Indexing
+• Context Generation
+• Repository Graph
+• Scheduling
+• Plugin Runtime
+• MCP Runtime
+• Tunnel Management
+
+This runtime must be:
+
+• Extremely fast
+• Memory efficient
+• Highly concurrent
+• Reliable
+• Secure
+• Cross-platform
+• Maintainable for many years
+
+Selecting the correct implementation language is therefore the most
+important architectural decision in the project.
+
+--------------------------------------------------------------------
+
+# Requirements
+
+The Core Language must provide:
+
+✓ Native performance
+
+✓ Small memory footprint
+
+✓ Excellent concurrency
+
+✓ Strong type safety
+
+✓ Excellent tooling
+
+✓ Cross-platform compilation
+
+✓ Mature ecosystem
+
+✓ Long-term stability
+
+✓ Low runtime overhead
+
+✓ Strong security guarantees
+
+--------------------------------------------------------------------
+
+# Options Considered
+
+Option A
+
+Rust
+
+------------------------------------------------------------
+
+Option B
+
+Go
+
+------------------------------------------------------------
+
+Option C
+
+C++
+
+------------------------------------------------------------
+
+Option D
+
+C#
+
+------------------------------------------------------------
+
+Option E
+
+Java
+
+------------------------------------------------------------
+
+Option F
+
+Node.js
+
+------------------------------------------------------------
+
+Option G
+
+Python
+
+--------------------------------------------------------------------
+
+# Evaluation
+
+Rust
+
+Pros
+
+✓ Zero-cost abstractions
+
+✓ No garbage collector
+
+✓ Predictable latency
+
+✓ Memory safety
+
+✓ Thread safety
+
+✓ Excellent async ecosystem
+
+✓ Excellent performance
+
+✓ Small binaries
+
+✓ Strong compiler guarantees
+
+✓ Great interoperability
+
+Cons
+
+• Steeper learning curve
+
+------------------------------------------------------------
+
+Go
+
+Pros
+
+✓ Simple
+
+✓ Excellent tooling
+
+✓ Good concurrency
+
+Cons
+
+• Garbage collection
+
+• Higher memory usage
+
+• Less control over allocations
+
+------------------------------------------------------------
+
+C++
+
+Pros
+
+✓ Extremely fast
+
+✓ Mature
+
+Cons
+
+• Memory safety risks
+
+• Undefined behavior
+
+• Higher maintenance cost
+
+------------------------------------------------------------
+
+C#
+
+Pros
+
+✓ Mature ecosystem
+
+Cons
+
+• Requires .NET runtime
+
+• Higher memory usage
+
+------------------------------------------------------------
+
+Java
+
+Pros
+
+✓ Mature
+
+Cons
+
+• JVM dependency
+
+• Large memory footprint
+
+------------------------------------------------------------
+
+Node.js
+
+Pros
+
+✓ Fast development
+
+Cons
+
+• High memory usage
+
+• Single-thread limitations
+
+• GC pauses
+
+------------------------------------------------------------
+
+Python
+
+Pros
+
+✓ Excellent ecosystem
+
+Cons
+
+• Too slow for WorkspaceOS Core
+
+--------------------------------------------------------------------
+
+# Decision
+
+WorkspaceOS SHALL use Rust as its Core implementation language.
+
+--------------------------------------------------------------------
+
+# Rationale
+
+Rust provides the strongest combination of:
+
+Performance
+
+Memory efficiency
+
+Safety
+
+Concurrency
+
+Long-term maintainability
+
+Cross-platform support
+
+Rust aligns directly with WorkspaceOS priorities.
+
+--------------------------------------------------------------------
+
+# Consequences
+
+Positive
+
+✓ Native performance
+
+✓ Low idle memory
+
+✓ Low CPU usage
+
+✓ Memory safety
+
+✓ Thread safety
+
+✓ Excellent async runtime
+
+✓ Strong ecosystem
+
+✓ Excellent integration with Tauri
+
+Negative
+
+• Higher learning curve
+
+• Slightly slower initial development
+
+These tradeoffs are acceptable.
+
+--------------------------------------------------------------------
+
+# Engineering Rules
+
+The Core SHALL:
+
+Use safe Rust by default.
+
+Avoid unnecessary unsafe code.
+
+Benchmark optimizations.
+
+Prefer ownership over shared mutable state.
+
+Use async only where appropriate.
+
+Prefer compile-time guarantees over runtime validation whenever
+practical.
+
+--------------------------------------------------------------------
+
+# Future Review
+
+This decision SHALL only be reconsidered if:
+
+A future language demonstrates objectively superior characteristics
+across performance, safety, tooling, maintainability and ecosystem.
+
+Such a change would require:
+
+• New benchmarks
+• Updated ADR
+• Architecture review
+• Migration strategy
+
+====================================================================
+Decision: ACCEPTED
+====================================================================
+```

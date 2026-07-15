@@ -1,0 +1,347 @@
+```text id="prjrl1"
+WorkspaceOS/docs/PROJECT-RULES.txt
+
+====================================================================
+WorkspaceOS
+Project Rules
+Version: 1.0
+Classification: Mandatory
+====================================================================
+
+# IMPORTANT
+
+These rules are mandatory.
+
+Every contributor, every AI assistant, every plugin author and every
+future maintainer MUST follow these rules.
+
+These rules exist to preserve the architecture, performance,
+maintainability and long-term quality of WorkspaceOS.
+
+If a proposed implementation violates any rule below, it SHALL be
+rejected unless an Architecture Decision Record (ADR) explicitly
+approves the exception.
+
+====================================================================
+SECTION 1 — CORE PRINCIPLES
+====================================================================
+
+1. Correctness is more important than speed.
+
+2. Security is more important than convenience.
+
+3. Architecture is more important than shortcuts.
+
+4. Simplicity is more important than cleverness.
+
+5. Measured performance is more important than assumed performance.
+
+6. Long-term maintainability is more important than short-term progress.
+
+====================================================================
+SECTION 2 — ARCHITECTURE RULES
+====================================================================
+
+• Business logic SHALL remain inside WorkspaceOS Core.
+
+• The UI SHALL NEVER contain business logic.
+
+• The MCP Layer SHALL NEVER contain business logic.
+
+• Tunnel providers SHALL NEVER contain business logic.
+
+• Plugins SHALL NEVER bypass the Core.
+
+• All communication SHALL occur through documented interfaces.
+
+• Circular dependencies are prohibited.
+
+• Hidden dependencies are prohibited.
+
+• Every subsystem SHALL have a single responsibility.
+
+• Every subsystem SHALL be independently testable.
+
+====================================================================
+SECTION 3 — PERFORMANCE RULES
+====================================================================
+
+• Polling is prohibited whenever an event-driven alternative exists.
+
+• Incremental computation SHALL always be preferred over full rebuilds.
+
+• Lazy loading SHALL be preferred over eager loading.
+
+• Cache only when benchmarking demonstrates measurable benefit.
+
+• Every cache SHALL define:
+  - Maximum size
+  - Eviction policy
+  - Invalidation strategy
+
+• Avoid unnecessary allocations.
+
+• Avoid unnecessary cloning.
+
+• Avoid blocking I/O on latency-sensitive paths.
+
+• Never optimize without profiling.
+
+• Every optimization SHALL include benchmark evidence.
+
+====================================================================
+SECTION 4 — SECURITY RULES
+====================================================================
+
+• Every request SHALL be authenticated.
+
+• Every request SHALL be authorized.
+
+• Every request SHALL pass capability evaluation.
+
+• Every request SHALL validate workspace access.
+
+• Secrets SHALL NEVER be stored in plaintext.
+
+• Secrets SHALL NEVER be written to logs.
+
+• Plugins SHALL receive only explicitly granted permissions.
+
+• Default configuration SHALL deny access until permissions are granted.
+
+• Principle of Least Privilege SHALL be enforced everywhere.
+
+====================================================================
+SECTION 5 — WORKSPACE RULES
+====================================================================
+
+• Every workspace is isolated.
+
+• A workspace SHALL NEVER access another workspace unless explicitly
+authorized.
+
+• File operations SHALL remain inside the workspace root.
+
+• Path traversal attacks SHALL be prevented.
+
+• Symbolic links SHALL be validated before access.
+
+• Ignore rules SHALL be respected.
+
+====================================================================
+SECTION 6 — MCP RULES
+====================================================================
+
+• The MCP Layer is transport only.
+
+• Tool schemas SHALL be validated before execution.
+
+• Invalid requests SHALL never reach business logic.
+
+• Tool outputs SHALL conform to documented schemas.
+
+• Streaming SHALL be supported for long-running operations.
+
+• Cancellation SHALL release resources cleanly.
+
+====================================================================
+SECTION 7 — CONTEXT ENGINE RULES
+====================================================================
+
+• Context SHALL be minimal.
+
+• Context SHALL be deterministic.
+
+• Context SHALL be explainable.
+
+• Context SHALL respect token budgets.
+
+• Context SHALL prefer indexed metadata over raw filesystem access.
+
+• Generated files SHALL be excluded unless explicitly requested.
+
+• Relevance SHALL be measurable and reproducible.
+
+====================================================================
+SECTION 8 — INDEX ENGINE RULES
+====================================================================
+
+• Repositories SHALL be fully indexed only once.
+
+• Filesystem events SHALL drive updates.
+
+• Metadata SHALL persist across restarts.
+
+• Index corruption SHALL trigger targeted recovery before full rebuild.
+
+• Native filesystem notifications SHALL be preferred.
+
+====================================================================
+SECTION 9 — CODE QUALITY RULES
+====================================================================
+
+• Every public API SHALL be documented.
+
+• Every public API SHALL include tests.
+
+• Every module SHALL expose structured errors.
+
+• Logging SHALL be structured.
+
+• Magic numbers are prohibited.
+
+• Hard-coded paths are prohibited.
+
+• Hidden global state is prohibited.
+
+• Dead code SHALL be removed.
+
+• Temporary debugging code SHALL not be committed.
+
+====================================================================
+SECTION 10 — DEPENDENCY RULES
+====================================================================
+
+Every dependency MUST satisfy all of the following:
+
+✓ Actively maintained
+
+✓ Stable
+
+✓ Well documented
+
+✓ License compatible
+
+✓ Performance appropriate
+
+✓ Security reviewed
+
+✓ Justified in an ADR if strategically important
+
+Heavy dependencies require benchmark justification.
+
+====================================================================
+SECTION 11 — DOCUMENTATION RULES
+====================================================================
+
+Before merging:
+
+Documentation MUST match implementation.
+
+Architecture changes REQUIRE:
+
+• SAD update (if architecture changes)
+
+• ADR (if a major decision changes)
+
+• README update (if user-facing)
+
+• Benchmarks update (if performance changes)
+
+Documentation is not optional.
+
+====================================================================
+SECTION 12 — TESTING RULES
+====================================================================
+
+Every feature SHALL include:
+
+✓ Unit tests
+
+✓ Integration tests (where applicable)
+
+✓ Regression tests (if fixing a bug)
+
+Performance-sensitive features SHALL also include:
+
+✓ Benchmarks
+
+Security-sensitive features SHALL also include:
+
+✓ Security validation
+
+Code without tests is incomplete.
+
+====================================================================
+SECTION 13 — REVIEW RULES
+====================================================================
+
+Every pull request SHALL verify:
+
+✓ Architecture compliance
+
+✓ Security
+
+✓ Correctness
+
+✓ Maintainability
+
+✓ Documentation
+
+✓ Performance impact
+
+✓ Error handling
+
+✓ Logging
+
+✓ Tests
+
+✓ Benchmarks (if required)
+
+No code is merged without review.
+
+====================================================================
+SECTION 14 — AI CONTRIBUTOR RULES
+====================================================================
+
+Any AI assistant contributing to WorkspaceOS SHALL:
+
+1. Read the SAD documents.
+
+2. Read all ADR documents.
+
+3. Read IMPLEMENTATION-GUIDE.txt.
+
+4. Read PROJECT-RULES.txt.
+
+5. Respect module boundaries.
+
+6. Never invent undocumented architecture.
+
+7. Never remove security mechanisms for convenience.
+
+8. Never replace technologies without benchmark evidence and an ADR.
+
+9. Explain trade-offs when proposing changes.
+
+10. Keep changes small, focused and reviewable.
+
+If uncertain, stop and ask for clarification.
+
+====================================================================
+SECTION 15 — ENGINEERING PHILOSOPHY
+====================================================================
+
+WorkspaceOS is built to last.
+
+We optimize for:
+
+• Reliability over hype.
+
+• Stability over novelty.
+
+• Engineering discipline over shortcuts.
+
+• Measured improvements over assumptions.
+
+• Modular evolution over rewrites.
+
+The objective is not simply to build software.
+
+The objective is to build software that remains understandable,
+maintainable, secure and performant for many years.
+
+====================================================================
+END OF FILE
+====================================================================
+```

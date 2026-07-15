@@ -1,0 +1,595 @@
+```text
+WorkspaceOS/docs/UI-DESIGN-SYSTEM.txt
+
+====================================================================
+WorkspaceOS
+Official UI Design System
+Version 1.0
+====================================================================
+
+# PURPOSE
+
+This document defines the complete visual language for WorkspaceOS.
+
+Every screen, component, color, animation, spacing rule, typography rule
+and interaction MUST follow this document.
+
+The goal is to build a desktop application that looks modern,
+professional, premium and timeless rather than trendy.
+
+The UI should feel like software built by a world-class product team.
+
+====================================================================
+DESIGN PHILOSOPHY
+====================================================================
+
+Keywords
+
+• Modern
+• Minimal
+• Premium
+• Fast
+• Clean
+• Technical
+• Calm
+• Confident
+• Information Dense
+• Developer Focused
+
+The interface should communicate precision rather than decoration.
+
+Avoid visual noise.
+
+Every pixel should have a purpose.
+
+Whitespace is preferred over unnecessary borders.
+
+====================================================================
+DESIGN REFERENCES
+====================================================================
+
+The design language should be inspired by the principles (not copied
+assets) of:
+
+• Linear
+• Raycast
+• Arc Browser
+• GitHub Desktop
+• Warp Terminal
+• Notion
+• VS Code
+• Tailscale
+• Stripe Dashboard
+
+====================================================================
+THEME
+====================================================================
+
+Dark Mode is the primary design target.
+
+Light Mode should also be supported using the same design tokens.
+
+====================================================================
+COLOR SYSTEM
+====================================================================
+
+Use semantic design tokens instead of hardcoded colors.
+
+Primary
+
+Deep Indigo
+
+Accent
+
+Electric Blue
+
+Success
+
+Emerald
+
+Warning
+
+Amber
+
+Danger
+
+Rose Red
+
+Information
+
+Cyan
+
+Neutral backgrounds should use cool grays with a slight blue tint.
+
+Avoid pure black (#000000).
+
+Avoid pure white (#FFFFFF).
+
+Use layered surfaces.
+
+Recommended dark hierarchy:
+
+App Background
+
+≈ #0B0F17
+
+Primary Surface
+
+≈ #111827
+
+Secondary Surface
+
+≈ #1A2233
+
+Elevated Surface
+
+≈ #202A3D
+
+Borders
+
+≈ #2B3648
+
+Primary Text
+
+≈ #F5F7FA
+
+Secondary Text
+
+≈ #B6C2D1
+
+Muted Text
+
+≈ #8A95A5
+
+Primary Accent
+
+≈ #4F8CFF
+
+Accent Hover
+
+≈ #73A5FF
+
+Success
+
+≈ #22C55E
+
+Warning
+
+≈ #F59E0B
+
+Danger
+
+≈ #EF4444
+
+Info
+
+≈ #06B6D4
+
+NOTE:
+Internally prefer OKLCH tokens where supported. These HEX values are
+reference values only.
+
+====================================================================
+TYPOGRAPHY
+====================================================================
+
+Primary Font
+
+Inter
+
+Fallback
+
+System UI
+
+Mono Font
+
+JetBrains Mono
+
+Hierarchy
+
+Display
+
+36px
+
+H1
+
+30px
+
+H2
+
+24px
+
+H3
+
+20px
+
+Body
+
+16px
+
+Small
+
+14px
+
+Caption
+
+12px
+
+Use font weight instead of excessive font size changes.
+
+Avoid decorative fonts.
+
+====================================================================
+SPACING
+====================================================================
+
+Use an 8-point spacing system.
+
+4
+8
+12
+16
+24
+32
+40
+48
+64
+
+Never invent random spacing values.
+
+====================================================================
+BORDER RADIUS
+====================================================================
+
+Small
+
+8px
+
+Medium
+
+12px
+
+Large
+
+16px
+
+Cards
+
+16px
+
+Dialogs
+
+20px
+
+Avoid sharp corners.
+
+====================================================================
+ICONS
+====================================================================
+
+Library
+
+Lucide React
+
+Use outlined icons.
+
+Avoid filled icons.
+
+Keep icon size consistent:
+
+16
+
+20
+
+24
+
+====================================================================
+BUTTONS
+====================================================================
+
+Primary
+
+Filled Accent
+
+Secondary
+
+Soft Surface
+
+Ghost
+
+Transparent
+
+Danger
+
+Red
+
+Buttons should have:
+
+Hover
+
+Focus Ring
+
+Disabled
+
+Loading
+
+Pressed
+
+States.
+
+====================================================================
+INPUTS
+====================================================================
+
+Rounded
+
+Subtle border
+
+Soft background
+
+Strong focus ring
+
+Placeholder with muted text
+
+Avoid heavy outlines.
+
+====================================================================
+CARDS
+====================================================================
+
+Cards should have:
+
+Large padding
+
+Rounded corners
+
+Very subtle border
+
+Soft shadow
+
+No excessive gradients.
+
+====================================================================
+NAVIGATION
+====================================================================
+
+Left Sidebar
+
+Main Content
+
+Optional Right Inspector
+
+Avoid top navigation unless necessary.
+
+====================================================================
+SIDEBAR
+====================================================================
+
+Contains
+
+Dashboard
+
+Workspace
+
+MCP Server
+
+Settings
+
+Logs
+
+About
+
+Bottom Section
+
+Theme Toggle
+
+Version
+
+====================================================================
+LAYOUT
+====================================================================
+
+Desktop First
+
+Minimum Width
+
+1200px
+
+Resizable
+
+Responsive
+
+No horizontal scrolling.
+
+====================================================================
+STATUS COLORS
+====================================================================
+
+Running
+
+Green
+
+Stopped
+
+Gray
+
+Starting
+
+Blue
+
+Warning
+
+Amber
+
+Error
+
+Red
+
+====================================================================
+LOG VIEWER
+====================================================================
+
+Monospaced Font
+
+Color-coded entries
+
+Timestamp
+
+Auto-scroll
+
+Pause button
+
+Clear button
+
+Copy button
+
+====================================================================
+ANIMATIONS
+====================================================================
+
+Animations should feel fast.
+
+Use subtle motion only.
+
+Duration
+
+120–220ms
+
+Use easing similar to:
+
+ease-out
+
+Avoid:
+
+Bounce
+
+Elastic
+
+Long fades
+
+Slow zooms
+
+====================================================================
+LOADING
+====================================================================
+
+Use skeleton loaders.
+
+Avoid large spinners where possible.
+
+====================================================================
+EMPTY STATES
+====================================================================
+
+Every empty page should explain:
+
+What this feature does
+
+How to start
+
+What the next action is
+
+====================================================================
+ACCESSIBILITY
+====================================================================
+
+WCAG AA contrast minimum.
+
+Keyboard navigation.
+
+Visible focus states.
+
+Screen reader labels where appropriate.
+
+Never rely on color alone.
+
+====================================================================
+COMPONENTS
+====================================================================
+
+Use:
+
+Tailwind CSS v4
+
+shadcn/ui
+
+Lucide React
+
+Motion
+
+React Hook Form
+
+Zod
+
+Avoid creating custom components when an existing shadcn component
+meets the requirement.
+
+====================================================================
+WINDOW STYLE
+====================================================================
+
+Native Tauri window.
+
+Custom title bar.
+
+Rounded corners (where supported).
+
+Native shadows.
+
+Blur effects should be subtle and used sparingly.
+
+====================================================================
+PERFORMANCE
+====================================================================
+
+Avoid unnecessary re-renders.
+
+Lazy load large pages.
+
+Virtualize long lists if required.
+
+Keep animations GPU-friendly.
+
+====================================================================
+DO NOT
+====================================================================
+
+Do not use:
+
+Glassmorphism everywhere.
+
+Heavy gradients.
+
+Neon effects.
+
+Oversized shadows.
+
+Random bright colors.
+
+Comic fonts.
+
+Material Design defaults.
+
+Bootstrap styling.
+
+Generic admin dashboard templates.
+
+====================================================================
+GOAL
+====================================================================
+
+When users open WorkspaceOS they should immediately think:
+
+"This feels fast."
+
+"This feels premium."
+
+"This feels like a professional developer tool."
+
+The interface should emphasize clarity, speed and confidence over visual
+flashiness.
+
+====================================================================
+END
+====================================================================
+```

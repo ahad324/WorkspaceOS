@@ -1,0 +1,352 @@
+```text id="adr012"
+WorkspaceOS/docs/ADR/ADR-012-Filesystem-Watcher.txt
+
+====================================================================
+WorkspaceOS
+Architecture Decision Record
+
+ADR-012
+Title       : Native Event-Driven Filesystem Monitoring
+Status      : ACCEPTED
+Version     : 1.0
+Date         : TBD
+====================================================================
+
+# Context
+
+WorkspaceOS maintains a continuously updated understanding of every
+workspace.
+
+To achieve this efficiently, it must detect filesystem changes with the
+lowest possible latency and overhead.
+
+Polling the entire repository wastes CPU, disk I/O and battery life,
+especially for large repositories.
+
+An event-driven solution is therefore required.
+
+--------------------------------------------------------------------
+
+# Requirements
+
+The filesystem monitoring subsystem MUST provide:
+
+✓ Low latency
+
+✓ Minimal CPU usage
+
+✓ Cross-platform support
+
+✓ Recursive watching
+
+✓ Reliable event delivery
+
+✓ Incremental updates
+
+✓ Debouncing
+
+✓ Low memory usage
+
+✓ High scalability
+
+--------------------------------------------------------------------
+
+# Options Considered
+
+Option A
+
+notify + notify-debouncer-full
+
+------------------------------------------------------------
+
+Option B
+
+Polling
+
+------------------------------------------------------------
+
+Option C
+
+Platform-specific implementations only
+
+------------------------------------------------------------
+
+Option D
+
+Manual refresh
+
+--------------------------------------------------------------------
+
+# Evaluation
+
+notify + notify-debouncer-full
+
+Pros
+
+✓ Cross-platform
+
+✓ Uses native OS notification APIs
+
+✓ Mature ecosystem
+
+✓ Debouncing support
+
+✓ Excellent Rust integration
+
+✓ Minimal CPU usage
+
+Cons
+
+• Platform-specific event behavior must be normalized
+
+------------------------------------------------------------
+
+Polling
+
+Pros
+
+✓ Simple
+
+Cons
+
+• High CPU usage
+
+• High disk activity
+
+• Poor scalability
+
+• Increased battery consumption
+
+------------------------------------------------------------
+
+Platform-specific Implementations
+
+Pros
+
+✓ Maximum control
+
+Cons
+
+• High maintenance cost
+
+• Duplicate implementations
+
+------------------------------------------------------------
+
+Manual Refresh
+
+Pros
+
+✓ Very simple
+
+Cons
+
+• Poor user experience
+
+• Stale repository state
+
+--------------------------------------------------------------------
+
+# Decision
+
+WorkspaceOS SHALL implement filesystem monitoring using the `notify`
+crate together with `notify-debouncer-full`.
+
+Native operating system notification APIs SHALL be used whenever
+available.
+
+--------------------------------------------------------------------
+
+# Native Backends
+
+WorkspaceOS SHALL rely on the operating system where possible.
+
+Examples include:
+
+Windows
+
+ReadDirectoryChangesW
+
+Linux
+
+inotify
+
+macOS
+
+FSEvents
+
+These backends are abstracted through the notify ecosystem to provide a
+consistent interface.
+
+--------------------------------------------------------------------
+
+# Architecture
+
+Filesystem
+
+↓
+
+Native OS Events
+
+↓
+
+notify
+
+↓
+
+Debouncer
+
+↓
+
+Workspace Event Bus
+
+↓
+
+Index Engine
+
+↓
+
+Repository Graph
+
+↓
+
+Context Engine
+
+Every downstream subsystem reacts to events rather than polling.
+
+--------------------------------------------------------------------
+
+# Debouncing
+
+Rapid bursts of filesystem events are common during:
+
+Git operations
+
+Package installation
+
+Large refactors
+
+Compiler output
+
+WorkspaceOS SHALL debounce related events before processing.
+
+The debounce interval SHALL be configurable and benchmark-driven.
+
+--------------------------------------------------------------------
+
+# Event Model
+
+Events SHALL include:
+
+Create
+
+Modify
+
+Rename
+
+Delete
+
+Metadata changes
+
+Overflow notifications
+
+Events SHALL be normalized before entering the Event Bus.
+
+--------------------------------------------------------------------
+
+# Ignore Rules
+
+The watcher SHALL respect:
+
+.gitignore
+
+Workspace-specific ignore rules
+
+Generated file rules
+
+Build output directories
+
+Temporary files
+
+Ignored files SHALL not trigger unnecessary indexing work.
+
+--------------------------------------------------------------------
+
+# Performance Strategy
+
+WorkspaceOS SHALL:
+
+Avoid polling
+
+Coalesce duplicate events
+
+Batch related updates
+
+Index only affected files
+
+Reuse cached metadata
+
+Perform incremental graph updates
+
+The monitoring subsystem SHALL remain effectively idle when no changes
+occur.
+
+--------------------------------------------------------------------
+
+# Reliability
+
+The subsystem SHALL detect and recover from:
+
+Watcher failures
+
+Buffer overflows
+
+Missed events
+
+Temporary filesystem unavailability
+
+If event integrity cannot be guaranteed, WorkspaceOS MAY perform a
+targeted rescan of affected paths rather than a full repository rebuild.
+
+--------------------------------------------------------------------
+
+# Consequences
+
+Positive
+
+✓ Extremely low idle CPU usage
+
+✓ Minimal disk activity
+
+✓ Fast repository updates
+
+✓ Excellent scalability
+
+✓ Responsive developer experience
+
+Negative
+
+• Platform-specific event semantics require normalization
+
+This complexity is isolated within the watcher abstraction layer.
+
+--------------------------------------------------------------------
+
+# Future Review
+
+This decision SHALL only be reconsidered if:
+
+• A future filesystem monitoring solution demonstrates objectively
+better performance, reliability and maintainability.
+
+Any replacement SHALL require:
+
+• Benchmark comparisons
+• Updated ADR
+• Migration strategy
+• Architecture review
+
+====================================================================
+Decision: ACCEPTED
+====================================================================
+```

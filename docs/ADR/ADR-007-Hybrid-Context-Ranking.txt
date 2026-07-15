@@ -1,0 +1,407 @@
+```text id="adr007"
+WorkspaceOS/docs/ADR/ADR-007-Hybrid-Context-Ranking.txt
+
+====================================================================
+WorkspaceOS
+Architecture Decision Record
+
+ADR-007
+Title       : Hybrid Context Ranking Engine
+Status      : ACCEPTED
+Version     : 1.0
+Date         : TBD
+====================================================================
+
+# Context
+
+The primary objective of WorkspaceOS is NOT to expose an entire
+repository to an AI.
+
+The objective is to provide the smallest possible amount of information
+that still enables the AI to solve the user's task correctly.
+
+Sending unnecessary files:
+
+• Increases latency
+• Wastes tokens
+• Confuses AI models
+• Produces inconsistent answers
+• Reduces reasoning quality
+
+Therefore WorkspaceOS requires an intelligent Context Engine capable of
+identifying only the most relevant information for each request.
+
+--------------------------------------------------------------------
+
+# Problem Statement
+
+Traditional approaches generally fall into one of three categories.
+
+Approach A
+
+Entire repository
+
+Advantages
+
+✓ Maximum information
+
+Disadvantages
+
+✗ Massive token usage
+
+✗ Slow
+
+✗ Poor scalability
+
+------------------------------------------------------------
+
+Approach B
+
+Keyword search
+
+Advantages
+
+✓ Fast
+
+Disadvantages
+
+✗ Misses dependencies
+
+✗ Misses architecture
+
+✗ Weak contextual understanding
+
+------------------------------------------------------------
+
+Approach C
+
+Vector database only
+
+Advantages
+
+✓ Semantic search
+
+Disadvantages
+
+✗ Additional infrastructure
+
+✗ Embedding maintenance
+
+✗ Slower indexing
+
+✗ Less deterministic
+
+--------------------------------------------------------------------
+
+# Decision
+
+WorkspaceOS SHALL implement a Hybrid Context Ranking Engine.
+
+The engine SHALL combine multiple independent ranking strategies rather
+than relying on a single search technique.
+
+--------------------------------------------------------------------
+
+# Design Philosophy
+
+The Context Engine SHALL answer one question:
+
+"What is the minimum amount of information required for an AI to solve
+this task correctly?"
+
+Not:
+
+"What files mention this keyword?"
+
+Not:
+
+"What files are most similar?"
+
+Context quality SHALL always take priority over context quantity.
+
+--------------------------------------------------------------------
+
+# Hybrid Ranking Model
+
+The final relevance score SHALL be computed from multiple signals.
+
+Examples include:
+
+1. Intent relevance
+
+2. File relevance
+
+3. Symbol relevance
+
+4. Dependency relevance
+
+5. Call graph proximity
+
+6. Import/export relationships
+
+7. Recently modified files
+
+8. User-selected files
+
+9. Git status
+
+10. Workspace configuration
+
+11. Project architecture
+
+12. File importance
+
+13. Language-specific weighting
+
+14. Directory importance
+
+15. Historical access patterns (optional and configurable)
+
+Each signal SHALL contribute a weighted score.
+
+Weights SHALL be configurable and benchmarked.
+
+--------------------------------------------------------------------
+
+# Repository Graph
+
+The Context Engine SHALL operate primarily on the Repository Graph rather
+than repeatedly scanning the filesystem.
+
+The graph SHALL model:
+
+Directories
+
+Files
+
+Symbols
+
+Functions
+
+Classes
+
+Interfaces
+
+Imports
+
+Exports
+
+Dependencies
+
+Configuration files
+
+Generated code
+
+Test files
+
+Documentation
+
+The graph becomes the canonical representation of repository structure.
+
+--------------------------------------------------------------------
+
+# Context Assembly Pipeline
+
+User Request
+
+↓
+
+Intent Analysis
+
+↓
+
+Candidate Discovery
+
+↓
+
+Graph Traversal
+
+↓
+
+Dependency Expansion
+
+↓
+
+Relevance Scoring
+
+↓
+
+Token Budget Optimization
+
+↓
+
+Context Assembly
+
+↓
+
+Final MCP Response
+
+Each stage SHALL be independently benchmarked.
+
+--------------------------------------------------------------------
+
+# Token Budget
+
+The Context Engine SHALL respect configurable token budgets.
+
+Priority SHALL be:
+
+Critical symbols
+
+↓
+
+Direct dependencies
+
+↓
+
+Related implementations
+
+↓
+
+Configuration
+
+↓
+
+Supporting documentation
+
+↓
+
+Tests (when beneficial)
+
+Low-value information SHALL be excluded automatically.
+
+--------------------------------------------------------------------
+
+# Caching Strategy
+
+Context generation SHALL use intelligent caching.
+
+Cache keys MAY include:
+
+Workspace ID
+
+Repository version
+
+Git commit
+
+File fingerprints
+
+User request hash
+
+Relevant dependency graph version
+
+Caches SHALL be invalidated incrementally.
+
+Full cache invalidation SHALL be avoided.
+
+--------------------------------------------------------------------
+
+# Determinism
+
+Identical inputs SHALL produce identical context.
+
+Random ordering is prohibited.
+
+Ranking algorithms SHALL remain deterministic.
+
+This simplifies debugging and benchmarking.
+
+--------------------------------------------------------------------
+
+# Performance Goals
+
+Target metrics:
+
+Intent analysis
+
+< 10 ms
+
+Candidate discovery
+
+< 20 ms
+
+Graph traversal
+
+< 30 ms
+
+Ranking
+
+< 20 ms
+
+Context assembly
+
+< 20 ms
+
+Typical end-to-end target:
+
+< 100 ms
+
+Performance SHALL be benchmarked across repositories of varying sizes.
+
+--------------------------------------------------------------------
+
+# Future Enhancements
+
+The architecture SHALL allow optional enhancements such as:
+
+• Local embedding indexes
+
+• Semantic reranking
+
+• Learning-to-rank models
+
+• Repository-specific heuristics
+
+• User-defined ranking plugins
+
+These enhancements MUST remain optional and SHALL NOT compromise the
+deterministic baseline behavior.
+
+--------------------------------------------------------------------
+
+# Consequences
+
+Positive
+
+✓ Lower token usage
+
+✓ Better AI responses
+
+✓ Faster request processing
+
+✓ Deterministic behavior
+
+✓ Excellent scalability
+
+✓ Provider-independent design
+
+Negative
+
+• More sophisticated implementation
+
+• Requires continuous benchmarking of ranking strategies
+
+These tradeoffs are justified by the significant improvement in context
+quality and efficiency.
+
+--------------------------------------------------------------------
+
+# Future Review
+
+This decision SHALL only be reconsidered if:
+
+• A demonstrably superior context-generation approach emerges that
+improves accuracy, latency and maintainability without sacrificing
+determinism.
+
+Any change SHALL require:
+
+• Comprehensive benchmarks
+• Updated ADR
+• Architecture review
+• Migration strategy
+
+====================================================================
+Decision: ACCEPTED
+====================================================================
+```

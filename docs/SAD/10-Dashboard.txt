@@ -1,0 +1,633 @@
+````text
+WorkspaceOS/docs/SAD/10-Dashboard.txt
+
+====================================================================
+WorkspaceOS
+Software Architecture Document (SAD)
+
+Document ID      : SAD-010
+Document Name    : Desktop Dashboard
+Version          : 1.0.0
+Status           : Draft
+Owner            : WorkspaceOS
+Classification   : Public
+====================================================================
+
+# IMPORTANT NOTE
+
+The Dashboard is NOT the core of WorkspaceOS.
+
+The Dashboard is merely a visual interface for interacting with the
+WorkspaceOS Core.
+
+Every action performed by the Dashboard SHALL be achievable through the
+WorkspaceOS Core APIs.
+
+Business logic SHALL NEVER exist inside the UI.
+
+The UI SHALL remain replaceable without affecting backend architecture.
+
+--------------------------------------------------------------------
+
+# 1. Purpose
+
+The Desktop Dashboard provides a unified graphical interface for
+managing WorkspaceOS.
+
+Its responsibilities include:
+
+• Workspace management
+• Connection management
+• Tunnel management
+• Plugin management
+• Security management
+• Monitoring
+• Performance visualization
+• Logs
+• Configuration
+• Diagnostics
+
+--------------------------------------------------------------------
+
+# 2. Design Philosophy
+
+The Dashboard SHALL be:
+
+Fast
+
+Minimal
+
+Responsive
+
+Predictable
+
+Accessible
+
+Cross-platform
+
+Keyboard-friendly
+
+Offline-first
+
+The Dashboard SHALL prioritize information density over decorative
+design.
+
+Animations SHALL remain subtle and optional.
+
+--------------------------------------------------------------------
+
+# 3. Technology Stack
+
+Frontend
+
+React
+
+Routing
+
+React Router
+
+Desktop Runtime
+
+Tauri
+
+Backend
+
+Rust
+
+Communication
+
+Tauri IPC
+
+Charts
+
+Lightweight rendering libraries
+
+Large UI frameworks SHOULD be avoided where practical.
+
+--------------------------------------------------------------------
+
+# 4. Dashboard Architecture
+
+User
+
+↓
+
+React UI
+
+↓
+
+State Management
+
+↓
+
+IPC Layer
+
+↓
+
+WorkspaceOS Core
+
+The UI SHALL never directly access:
+
+Filesystem
+
+Git
+
+Terminal
+
+SQLite
+
+Plugins
+
+All requests SHALL pass through the Core.
+
+--------------------------------------------------------------------
+
+# 5. Primary Navigation
+
+The Dashboard SHALL provide the following primary modules.
+
+Home
+
+Workspaces
+
+Connections
+
+Tunnel
+
+Performance
+
+Security
+
+Plugins
+
+Logs
+
+Settings
+
+Diagnostics
+
+Future modules SHALL integrate through modular routing.
+
+--------------------------------------------------------------------
+
+# 6. Home Screen
+
+The Home screen SHALL display:
+
+Workspace count
+
+Active workspace
+
+Current tunnel
+
+Connection status
+
+System health
+
+Recent activity
+
+Quick actions
+
+Recent projects
+
+Version
+
+--------------------------------------------------------------------
+
+# 7. Workspace Screen
+
+The Workspace page SHALL support:
+
+Create
+
+Delete
+
+Import
+
+Export
+
+Open
+
+Close
+
+Activate
+
+Pause
+
+Health
+
+Configuration
+
+Performance profile
+
+Workspace permissions
+
+--------------------------------------------------------------------
+
+# 8. Connection Screen
+
+Displays:
+
+Connected AI clients
+
+Session duration
+
+Authentication provider
+
+Current capabilities
+
+Connection latency
+
+Bandwidth
+
+Requests
+
+Errors
+
+Users MAY disconnect individual sessions.
+
+--------------------------------------------------------------------
+
+# 9. Tunnel Screen
+
+Displays:
+
+Current provider
+
+Public URL
+
+Latency
+
+Status
+
+Reconnect count
+
+Provider configuration
+
+Automatic startup
+
+Traffic statistics
+
+Tunnel logs
+
+Users SHALL manage providers from this page.
+
+--------------------------------------------------------------------
+
+# 10. Performance Dashboard
+
+Displays:
+
+CPU
+
+Memory
+
+Workers
+
+Cache hit ratio
+
+Search latency
+
+Context latency
+
+Index latency
+
+Disk usage
+
+Queue sizes
+
+Scheduler state
+
+Every graph SHALL update incrementally.
+
+--------------------------------------------------------------------
+
+# 11. Security Dashboard
+
+Displays:
+
+Authentication providers
+
+API Keys
+
+JWT Sessions
+
+Capabilities
+
+Audit log
+
+Workspace permissions
+
+Secret usage
+
+Failed authentication
+
+Blocked requests
+
+Rate limits
+
+--------------------------------------------------------------------
+
+# 12. Plugin Manager
+
+Displays:
+
+Installed plugins
+
+Versions
+
+Requested permissions
+
+Status
+
+Updates
+
+Enable
+
+Disable
+
+Remove
+
+Install
+
+Plugin permissions SHALL always be visible before activation.
+
+--------------------------------------------------------------------
+
+# 13. Logs
+
+The Dashboard SHALL support:
+
+Filtering
+
+Searching
+
+Exporting
+
+Live streaming
+
+Severity filtering
+
+Subsystem filtering
+
+Time filtering
+
+Correlation ID lookup
+
+Logs SHALL remain searchable.
+
+--------------------------------------------------------------------
+
+# 14. Settings
+
+Settings SHALL include:
+
+General
+
+Workspace
+
+Performance
+
+Security
+
+Tunnel
+
+Appearance
+
+Plugins
+
+Diagnostics
+
+Advanced
+
+Settings SHALL be validated before saving.
+
+--------------------------------------------------------------------
+
+# 15. Diagnostics
+
+Diagnostics SHALL expose:
+
+Version
+
+OS
+
+CPU
+
+RAM
+
+Index statistics
+
+Search statistics
+
+Cache statistics
+
+Worker pool
+
+Scheduler
+
+Performance profile
+
+Filesystem health
+
+Git health
+
+Tunnel health
+
+Plugin health
+
+--------------------------------------------------------------------
+
+# 16. State Management
+
+The UI SHALL maintain only presentation state.
+
+Business state SHALL remain inside WorkspaceOS Core.
+
+Examples of UI state:
+
+Selected page
+
+Open dialogs
+
+Table filters
+
+Sorting
+
+Theme
+
+Transient notifications
+
+--------------------------------------------------------------------
+
+# 17. IPC
+
+Communication SHALL use Tauri IPC.
+
+The IPC layer SHALL provide:
+
+Typed requests
+
+Typed responses
+
+Streaming
+
+Cancellation
+
+Version compatibility
+
+IPC SHALL remain thin.
+
+--------------------------------------------------------------------
+
+# 18. Notifications
+
+The Dashboard SHALL support notifications.
+
+Examples:
+
+Workspace loaded
+
+Tunnel connected
+
+Plugin installed
+
+Index completed
+
+Security warning
+
+Performance warning
+
+Notifications SHALL be non-blocking.
+
+--------------------------------------------------------------------
+
+# 19. Accessibility
+
+The Dashboard SHALL support:
+
+Keyboard navigation
+
+Screen readers
+
+High contrast themes
+
+Scalable fonts
+
+Reduced motion
+
+Focus indicators
+
+Accessibility SHALL remain a first-class concern.
+
+--------------------------------------------------------------------
+
+# 20. Performance Goals
+
+Dashboard startup
+
+Target
+
+<500 ms after backend ready
+
+Navigation
+
+Target
+
+Instant
+
+Charts
+
+Incremental updates
+
+Memory
+
+Minimal React re-rendering
+
+The Dashboard SHALL never significantly impact WorkspaceOS performance.
+
+--------------------------------------------------------------------
+
+# 21. Error Handling
+
+UI errors SHALL:
+
+Display meaningful messages
+
+Remain recoverable
+
+Provide diagnostics
+
+Avoid application crashes
+
+Backend failures SHALL not corrupt UI state.
+
+--------------------------------------------------------------------
+
+# 22. Mermaid Diagram
+
+```mermaid
+
+flowchart TD
+
+USER[User]
+
+UI[React UI]
+
+STATE[UI State]
+
+IPC[Tauri IPC]
+
+CORE[WorkspaceOS Core]
+
+USER --> UI
+UI --> STATE
+STATE --> IPC
+IPC --> CORE
+
+````
+
+---
+
+# 23. Future Expansion
+
+Future modules MAY include:
+
+Marketplace
+
+Cloud synchronization
+
+Workspace templates
+
+Multi-user collaboration
+
+Analytics
+
+AI conversation history
+
+Automation workflows
+
+Enterprise management
+
+Each module SHALL remain independently deployable.
+
+---
+
+# 24. Exit Criteria
+
+The Dashboard is considered complete when:
+
+• Every backend capability is accessible through the UI.
+• Business logic remains outside the frontend.
+• Performance remains lightweight.
+• Accessibility requirements are satisfied.
+• Navigation remains modular.
+• Monitoring, configuration, diagnostics, and security are unified within
+a single desktop experience.
+
+====================================================================
+END OF DOCUMENT
+===============
+
+```
+```

@@ -1,0 +1,604 @@
+```text id="impg01"
+WorkspaceOS/docs/IMPLEMENTATION-GUIDE.txt
+
+====================================================================
+WorkspaceOS
+Master Implementation Guide
+Version: 1.0
+Classification: Internal
+====================================================================
+
+# IMPORTANT
+
+This document is the single source of truth for implementing WorkspaceOS.
+
+Every AI agent, contributor, or developer working on this project MUST
+read this document before writing code.
+
+If there is a conflict between implementation and architecture, the
+Software Architecture Documents (SAD) and Architecture Decision Records
+(ADR) take precedence.
+
+WorkspaceOS SHALL NEVER sacrifice architecture, security, correctness,
+or maintainability for short-term convenience.
+
+This guide defines WHAT to build, WHEN to build it, and HOW to build it.
+
+--------------------------------------------------------------------
+
+# 1. Project Mission
+
+Build the world's fastest, most secure, and most intelligent local
+workspace runtime for AI.
+
+WorkspaceOS should allow AI assistants to understand codebases deeply,
+perform authorized actions, and maintain complete repository awareness
+while remaining lightweight enough to run efficiently even on low-end
+hardware.
+
+Primary goals:
+
+• Near-zero idle CPU
+• Low memory usage
+• Extremely fast startup
+• Incremental repository indexing
+• Intelligent context generation
+• Provider-independent MCP implementation
+• Strong security boundaries
+• Modular architecture
+• Long-term maintainability
+
+--------------------------------------------------------------------
+
+# 2. Non-Negotiable Principles
+
+Every implementation MUST satisfy:
+
+✓ Security First
+✓ Correctness First
+✓ Performance Through Good Design
+✓ Event-Driven Architecture
+✓ Incremental Computation
+✓ Deterministic Behavior
+✓ Modular Design
+✓ Clean Architecture
+✓ Testability
+✓ Benchmarkability
+
+Never optimize based on assumptions.
+
+Measure first.
+
+Optimize second.
+
+--------------------------------------------------------------------
+
+# 3. Development Order
+
+WorkspaceOS SHALL be implemented in the following order.
+
+Phase 0
+Architecture & Repository
+
+↓
+
+Phase 1
+Workspace Runtime
+
+↓
+
+Phase 2
+Filesystem Layer
+
+↓
+
+Phase 3
+Index Engine
+
+↓
+
+Phase 4
+Repository Graph
+
+↓
+
+Phase 5
+Search Engine
+
+↓
+
+Phase 6
+Context Engine
+
+↓
+
+Phase 7
+Security Engine
+
+↓
+
+Phase 8
+MCP Runtime
+
+↓
+
+Phase 9
+Desktop Application
+
+↓
+
+Phase 10
+Tunnel Manager
+
+↓
+
+Phase 11
+Plugin System
+
+↓
+
+Phase 12
+Performance Optimization
+
+↓
+
+Phase 13
+Production Release
+
+No phase should begin until the previous phase satisfies its exit
+criteria.
+
+--------------------------------------------------------------------
+
+# 4. Phase 0
+
+Objectives
+
+• Initialize repository
+• Configure Rust workspace
+• Configure Tauri
+• Configure React
+• Configure pnpm
+• Configure Cargo
+• Configure CI
+• Configure formatting
+• Configure linting
+• Configure testing
+• Configure benchmarks
+• Establish documentation
+• Create repository layout
+
+Exit Criteria
+
+Project builds successfully.
+
+CI passes.
+
+Repository structure finalized.
+
+--------------------------------------------------------------------
+
+# 5. Phase 1
+
+Workspace Runtime
+
+Build:
+
+Workspace Manager
+
+Workspace Registry
+
+Configuration Loader
+
+Configuration Validator
+
+Filesystem Abstraction
+
+Workspace Lifecycle
+
+Workspace Isolation
+
+Event Bus
+
+Logging
+
+Diagnostics
+
+Nothing else should directly manipulate workspaces.
+
+--------------------------------------------------------------------
+
+# 6. Phase 2
+
+Filesystem Layer
+
+Implement:
+
+Filesystem abstraction
+
+Native file watching
+
+Cross-platform support
+
+Atomic writes
+
+Path normalization
+
+Canonical paths
+
+Ignore rules
+
+Filesystem events
+
+No subsystem should directly use platform-specific APIs.
+
+--------------------------------------------------------------------
+
+# 7. Phase 3
+
+Index Engine
+
+Implement:
+
+Incremental indexing
+
+Metadata extraction
+
+Persistent SQLite storage
+
+Hashes
+
+Fingerprints
+
+Dependency indexing
+
+Symbol extraction
+
+Repository graph generation
+
+Event-driven updates
+
+No polling.
+
+--------------------------------------------------------------------
+
+# 8. Phase 4
+
+Repository Graph
+
+Build graph models for:
+
+Directories
+
+Files
+
+Symbols
+
+Imports
+
+Exports
+
+Dependencies
+
+Architecture
+
+Ownership
+
+Configuration
+
+Relationships
+
+The graph becomes the primary knowledge source.
+
+--------------------------------------------------------------------
+
+# 9. Phase 5
+
+Search Engine
+
+Implement:
+
+Filename search
+
+Path search
+
+Symbol search
+
+Dependency search
+
+Architecture search
+
+Indexed lookups only.
+
+Never search the raw filesystem after indexing.
+
+--------------------------------------------------------------------
+
+# 10. Phase 6
+
+Context Engine
+
+Implement:
+
+Intent detection
+
+Relevance ranking
+
+Context assembly
+
+Token budgeting
+
+Dependency traversal
+
+Architecture understanding
+
+Context explanation
+
+Context caching
+
+The Context Engine is the defining feature of WorkspaceOS.
+
+--------------------------------------------------------------------
+
+# 11. Phase 7
+
+Security Engine
+
+Implement:
+
+Authentication
+
+Authorization
+
+Capability evaluation
+
+Workspace permissions
+
+Secret storage
+
+Audit logging
+
+Rate limiting
+
+Security is enforced before every operation.
+
+--------------------------------------------------------------------
+
+# 12. Phase 8
+
+MCP Runtime
+
+Implement:
+
+Protocol layer
+
+Tool registry
+
+Tool dispatcher
+
+Streaming
+
+Cancellation
+
+Version negotiation
+
+Session management
+
+Never place business logic inside the MCP layer.
+
+--------------------------------------------------------------------
+
+# 13. Phase 9
+
+Desktop Application
+
+Build:
+
+Dashboard
+
+Workspace management
+
+Security management
+
+Performance dashboard
+
+Tunnel dashboard
+
+Logs
+
+Diagnostics
+
+Settings
+
+Plugin manager
+
+The UI must remain thin.
+
+--------------------------------------------------------------------
+
+# 14. Phase 10
+
+Tunnel Manager
+
+Implement:
+
+Tunnel abstraction
+
+Cloudflare Tunnel
+
+ngrok
+
+Tailscale
+
+Automatic startup
+
+Health monitoring
+
+Provider failover
+
+Automatic recovery
+
+Transport providers never enforce security.
+
+WorkspaceOS does.
+
+--------------------------------------------------------------------
+
+# 15. Phase 11
+
+Plugin System
+
+Implement:
+
+Plugin SDK
+
+Plugin loader
+
+Permission model
+
+Sandboxing
+
+Lifecycle
+
+Versioning
+
+Tool registration
+
+Plugins must never compromise the core.
+
+--------------------------------------------------------------------
+
+# 16. Phase 12
+
+Performance Optimization
+
+Only after all features are complete.
+
+Profile first.
+
+Benchmark first.
+
+Then optimize:
+
+Memory
+
+CPU
+
+Caches
+
+Workers
+
+Scheduling
+
+Startup
+
+Context generation
+
+Indexing
+
+Never optimize blindly.
+
+--------------------------------------------------------------------
+
+# 17. Phase 13
+
+Production Release
+
+Finalize:
+
+Testing
+
+Benchmarks
+
+Documentation
+
+Packaging
+
+Installers
+
+Code signing
+
+Release automation
+
+Versioning
+
+Public documentation
+
+--------------------------------------------------------------------
+
+# 18. Coding Rules
+
+Every feature MUST include:
+
+Documentation
+
+Unit tests
+
+Integration tests (where applicable)
+
+Logging
+
+Error handling
+
+Performance consideration
+
+Architecture compliance
+
+Public APIs require documentation.
+
+--------------------------------------------------------------------
+
+# 19. AI Contributor Instructions
+
+If you are an AI assistant working on WorkspaceOS:
+
+1. Read the SAD documents first.
+2. Read the ADR documents.
+3. Read PROJECT-RULES.txt.
+4. Never invent architecture.
+5. Never bypass security.
+6. Never ignore benchmarks.
+7. Never duplicate business logic.
+8. Follow existing module boundaries.
+9. Explain architectural tradeoffs.
+10. Keep changes focused and atomic.
+
+If uncertain, ask for clarification rather than making assumptions.
+
+--------------------------------------------------------------------
+
+# 20. Definition of Done
+
+A feature is complete only when:
+
+✓ Code implemented
+✓ Tests passing
+✓ Benchmarks completed (if performance-sensitive)
+✓ Documentation updated
+✓ Logging included
+✓ Errors handled
+✓ Security reviewed
+✓ Architecture respected
+✓ CI passes
+✓ Code review completed
+
+--------------------------------------------------------------------
+
+# 21. Success Criteria
+
+WorkspaceOS succeeds when it is:
+
+Fast enough for low-end hardware.
+
+Scalable enough for enterprise repositories.
+
+Secure enough for professional use.
+
+Flexible enough to support future AI providers.
+
+Maintainable enough to evolve for years without major rewrites.
+
+====================================================================
+END OF FILE
+====================================================================
+```

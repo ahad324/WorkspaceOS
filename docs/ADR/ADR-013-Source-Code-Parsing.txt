@@ -1,0 +1,364 @@
+```text id="adr013"
+WorkspaceOS/docs/ADR/ADR-013-Source-Code-Parsing.txt
+
+====================================================================
+WorkspaceOS
+Architecture Decision Record
+
+ADR-013
+Title       : Tree-sitter as the Primary Source Code Parser
+Status      : ACCEPTED
+Version     : 1.0
+Date         : TBD
+====================================================================
+
+# Context
+
+WorkspaceOS must understand source code at a structural level rather
+than treating files as plain text.
+
+Accurate parsing enables:
+
+• Symbol indexing
+• Function discovery
+• Class discovery
+• Interface extraction
+• Dependency mapping
+• Import/export analysis
+• Call graph generation
+• Context generation
+• Intelligent search
+• AI-assisted code understanding
+
+The parser must support many programming languages while remaining fast,
+incremental and memory efficient.
+
+--------------------------------------------------------------------
+
+# Requirements
+
+The parsing subsystem MUST provide:
+
+✓ Multi-language support
+
+✓ Incremental parsing
+
+✓ High performance
+
+✓ Syntax tree generation
+
+✓ Stable ecosystem
+
+✓ Cross-platform support
+
+✓ Good Rust integration
+
+✓ Low memory usage
+
+✓ Active maintenance
+
+--------------------------------------------------------------------
+
+# Options Considered
+
+Option A
+
+Tree-sitter
+
+------------------------------------------------------------
+
+Option B
+
+Language Server Protocol (LSP)
+
+------------------------------------------------------------
+
+Option C
+
+Regular Expressions
+
+------------------------------------------------------------
+
+Option D
+
+Compiler-specific parsers only
+
+--------------------------------------------------------------------
+
+# Evaluation
+
+Tree-sitter
+
+Pros
+
+✓ Incremental parsing
+
+✓ Excellent performance
+
+✓ Multi-language support
+
+✓ Robust syntax trees
+
+✓ Strong Rust ecosystem
+
+✓ Widely adopted
+
+✓ Low memory usage
+
+Cons
+
+• Requires language grammars
+
+------------------------------------------------------------
+
+LSP
+
+Pros
+
+✓ Rich semantic information
+
+Cons
+
+• Requires running external language servers
+
+• Higher resource usage
+
+• Inconsistent implementations
+
+------------------------------------------------------------
+
+Regular Expressions
+
+Pros
+
+✓ Simple
+
+Cons
+
+• Not syntax-aware
+
+• Fragile
+
+• Poor accuracy
+
+------------------------------------------------------------
+
+Compiler Parsers
+
+Pros
+
+✓ Very accurate
+
+Cons
+
+• Different implementation per language
+
+• High complexity
+
+--------------------------------------------------------------------
+
+# Decision
+
+WorkspaceOS SHALL use Tree-sitter as its primary source code parsing
+engine.
+
+Semantic enhancements from language servers MAY be added in the future,
+but Tree-sitter SHALL remain the foundational parser.
+
+--------------------------------------------------------------------
+
+# Responsibilities
+
+Tree-sitter SHALL be used to extract:
+
+Files
+
+Functions
+
+Methods
+
+Classes
+
+Structs
+
+Interfaces
+
+Enums
+
+Traits
+
+Namespaces
+
+Modules
+
+Imports
+
+Exports
+
+Variables (where useful)
+
+Comments (configurable)
+
+Syntax errors
+
+Language-specific constructs
+
+The extracted information SHALL populate the Repository Graph.
+
+--------------------------------------------------------------------
+
+# Architecture
+
+Source File
+
+↓
+
+Language Detection
+
+↓
+
+Tree-sitter Parser
+
+↓
+
+Abstract Syntax Tree (AST)
+
+↓
+
+Symbol Extractor
+
+↓
+
+Repository Graph
+
+↓
+
+Search Engine
+
+↓
+
+Context Engine
+
+Parsing SHALL occur only for changed files whenever possible.
+
+--------------------------------------------------------------------
+
+# Incremental Parsing
+
+WorkspaceOS SHALL leverage Tree-sitter's incremental parsing
+capabilities.
+
+Only modified regions of a file SHOULD be reparsed after edits.
+
+This minimizes CPU usage and improves responsiveness during active
+development.
+
+--------------------------------------------------------------------
+
+# Multi-Language Strategy
+
+Each supported language SHALL provide:
+
+Grammar
+
+Node mappings
+
+Symbol extraction rules
+
+Dependency extraction rules
+
+Language-specific heuristics
+
+Support for additional languages SHALL be modular.
+
+--------------------------------------------------------------------
+
+# Performance Strategy
+
+WorkspaceOS SHALL:
+
+Parse only changed files
+
+Cache parse trees where beneficial
+
+Reuse syntax trees when possible
+
+Parallelize parsing across independent files
+
+Avoid reparsing unchanged content
+
+Performance SHALL be validated with representative repositories.
+
+--------------------------------------------------------------------
+
+# Error Handling
+
+Syntax errors within user code SHALL NOT interrupt indexing.
+
+The parser SHALL recover gracefully and extract as much useful structure
+as possible.
+
+Parsing failures SHALL be logged for diagnostics without disrupting
+normal operation.
+
+--------------------------------------------------------------------
+
+# Future Enhancements
+
+Future optional integrations MAY include:
+
+• Language Server Protocol (LSP) semantic data
+
+• Compiler symbol databases
+
+• Type inference
+
+• Cross-language reference resolution
+
+• AI-assisted semantic enrichment
+
+These enhancements SHALL complement—not replace—the Tree-sitter-based
+foundation.
+
+--------------------------------------------------------------------
+
+# Consequences
+
+Positive
+
+✓ Fast incremental parsing
+
+✓ Excellent language coverage
+
+✓ Low memory usage
+
+✓ Accurate structural analysis
+
+✓ Strong ecosystem
+
+Negative
+
+• Requires maintaining language grammars and extraction rules
+
+The benefits significantly outweigh the maintenance cost.
+
+--------------------------------------------------------------------
+
+# Future Review
+
+This decision SHALL only be reconsidered if:
+
+• A future parsing technology demonstrates objectively superior
+performance, accuracy, maintainability and language support.
+
+Any replacement SHALL require:
+
+• Benchmark comparisons
+• Updated ADR
+• Migration strategy
+• Architecture review
+
+====================================================================
+Decision: ACCEPTED
+====================================================================
+```

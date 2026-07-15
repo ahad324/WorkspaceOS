@@ -1,0 +1,680 @@
+````text
+WorkspaceOS/docs/SAD/08-File-Index.txt
+
+====================================================================
+WorkspaceOS
+Software Architecture Document (SAD)
+
+Document ID      : SAD-008
+Document Name    : File Index & Repository Index Engine
+Version          : 1.0.0
+Status           : Draft
+Owner            : WorkspaceOS
+Classification   : Public
+====================================================================
+
+# IMPORTANT NOTE
+
+The File Index Engine is arguably the most performance-critical subsystem
+inside WorkspaceOS.
+
+Every intelligent feature—including search, context generation,
+dependency analysis, architecture understanding, symbol discovery,
+performance optimizations, and AI-assisted development—depends on the
+quality and speed of this subsystem.
+
+The Index Engine SHALL prioritize incremental computation over complete
+repository rescans.
+
+A repository SHALL only be fully indexed once.
+
+After the initial indexing phase, all updates SHALL be event-driven and
+incremental.
+
+--------------------------------------------------------------------
+
+# 1. Purpose
+
+The Index Engine is responsible for transforming the filesystem into a
+high-performance structured repository database.
+
+Its responsibilities include:
+
+• Repository indexing
+• Metadata extraction
+• Symbol indexing
+• Dependency indexing
+• File fingerprinting
+• Incremental updates
+• Change detection
+• Repository graph generation
+• Search optimization
+
+The Index Engine SHALL become the authoritative metadata provider for
+WorkspaceOS.
+
+--------------------------------------------------------------------
+
+# 2. Design Principles
+
+The Index Engine SHALL follow these principles.
+
+• Incremental First
+• Event Driven
+• Lock Free where practical
+• Immutable Metadata
+• Fast Startup
+• Persistent Storage
+• Memory Efficient
+• CPU Efficient
+• Deterministic
+• Crash Recoverable
+
+--------------------------------------------------------------------
+
+# 3. Responsibilities
+
+The Index Engine SHALL maintain:
+
+Repository Metadata
+
+Directory Tree
+
+File Metadata
+
+Language Metadata
+
+Dependency Graph
+
+Symbol Graph
+
+Architecture Graph
+
+Checksums
+
+File Fingerprints
+
+Search Metadata
+
+Git Metadata
+
+Index Statistics
+
+--------------------------------------------------------------------
+
+# 4. Non Responsibilities
+
+The Index Engine SHALL NOT:
+
+Execute terminal commands
+
+Generate AI responses
+
+Modify files
+
+Perform authorization
+
+Handle authentication
+
+Manage workspaces
+
+Render UI
+
+Store secrets
+
+--------------------------------------------------------------------
+
+# 5. Repository Model
+
+A repository SHALL be represented as multiple interconnected graphs.
+
+Filesystem Graph
+
+Dependency Graph
+
+Import Graph
+
+Call Graph
+
+Symbol Graph
+
+Architecture Graph
+
+Configuration Graph
+
+Every graph SHALL be independently maintainable.
+
+--------------------------------------------------------------------
+
+# 6. Initial Indexing
+
+Initial indexing SHALL follow this workflow.
+
+Workspace Ready
+
+↓
+
+Discover Files
+
+↓
+
+Apply Ignore Rules
+
+↓
+
+Create Directory Graph
+
+↓
+
+Extract Metadata
+
+↓
+
+Detect Language
+
+↓
+
+Build Symbol Graph
+
+↓
+
+Build Dependency Graph
+
+↓
+
+Persist Metadata
+
+↓
+
+Ready
+
+Initial indexing SHALL be parallelized.
+
+--------------------------------------------------------------------
+
+# 7. Incremental Updates
+
+After startup, the filesystem watcher SHALL become the primary source
+of updates.
+
+Filesystem Event
+
+↓
+
+Determine Changed Files
+
+↓
+
+Invalidate Related Metadata
+
+↓
+
+Reparse Affected Files
+
+↓
+
+Update Graphs
+
+↓
+
+Persist Changes
+
+↓
+
+Publish Events
+
+No complete repository rescan SHALL occur unless explicitly requested.
+
+--------------------------------------------------------------------
+
+# 8. File Metadata
+
+Each indexed file SHALL contain:
+
+File ID
+
+Workspace ID
+
+Canonical Path
+
+Relative Path
+
+Extension
+
+Language
+
+Encoding
+
+Size
+
+Creation Time
+
+Modification Time
+
+Hash
+
+Fingerprint
+
+Index Version
+
+Parse Status
+
+Git Status
+
+Dependencies
+
+Referenced Symbols
+
+Exported Symbols
+
+--------------------------------------------------------------------
+
+# 9. Fingerprinting
+
+Every file SHALL receive a deterministic fingerprint.
+
+The fingerprint SHALL change whenever meaningful content changes.
+
+Preferred inputs include:
+
+Normalized content
+
+Relevant metadata
+
+Language version (if applicable)
+
+Index schema version
+
+Fingerprints SHALL support fast change detection.
+
+--------------------------------------------------------------------
+
+# 10. Checksums
+
+Checksums SHALL detect corruption.
+
+WorkspaceOS SHOULD use a modern high-performance hashing algorithm.
+
+Examples suitable for evaluation include:
+
+BLAKE3
+
+XXH3 (non-cryptographic metadata)
+
+SHA-256 (where cryptographic guarantees are required)
+
+Algorithm selection SHALL be benchmark-driven.
+
+--------------------------------------------------------------------
+
+# 11. Ignore Rules
+
+The Index Engine SHALL ignore unnecessary files.
+
+Examples:
+
+.git/
+
+node_modules/
+
+dist/
+
+build/
+
+coverage/
+
+target/
+
+bin/
+
+obj/
+
+.cache/
+
+.tmp/
+
+Ignore rules SHALL be configurable.
+
+--------------------------------------------------------------------
+
+# 12. Language Detection
+
+Language detection SHALL use multiple signals.
+
+Extension
+
+Configuration Files
+
+Build Files
+
+Project Metadata
+
+Detected Framework
+
+Language providers MAY contribute additional heuristics.
+
+--------------------------------------------------------------------
+
+# 13. Symbol Extraction
+
+Language providers SHALL expose symbols.
+
+Examples:
+
+Functions
+
+Methods
+
+Classes
+
+Interfaces
+
+Enums
+
+Types
+
+Traits
+
+Structs
+
+Variables
+
+Constants
+
+Routes
+
+Schemas
+
+Symbols SHALL be indexed independently.
+
+--------------------------------------------------------------------
+
+# 14. Dependency Extraction
+
+The Index Engine SHALL discover:
+
+Imports
+
+Exports
+
+Package References
+
+Configuration References
+
+Runtime Dependencies
+
+Dependency relationships SHALL be directional.
+
+--------------------------------------------------------------------
+
+# 15. Persistent Storage
+
+Indexes SHALL survive application restart.
+
+Recommended persistent storage:
+
+SQLite
+
+SQLite SHALL contain:
+
+Metadata
+
+Graphs
+
+Fingerprints
+
+Statistics
+
+Search structures
+
+Versioning information
+
+Persistent storage SHALL support atomic updates.
+
+--------------------------------------------------------------------
+
+# 16. In-Memory Structures
+
+Frequently accessed data SHALL remain in memory.
+
+Examples:
+
+Workspace metadata
+
+Open files
+
+Recent symbols
+
+Directory graph
+
+Hot cache
+
+Large datasets SHALL remain on disk until requested.
+
+--------------------------------------------------------------------
+
+# 17. Search Integration
+
+The Index Engine SHALL expose optimized interfaces for:
+
+Filename Search
+
+Symbol Search
+
+Path Search
+
+Dependency Search
+
+Architecture Search
+
+Search SHALL never traverse the raw filesystem after indexing.
+
+--------------------------------------------------------------------
+
+# 18. Filesystem Monitoring
+
+WorkspaceOS SHALL use native filesystem notifications.
+
+Examples:
+
+Windows
+
+ReadDirectoryChangesW
+
+Linux
+
+inotify
+
+macOS
+
+FSEvents
+
+Polling SHALL only be used as a fallback.
+
+--------------------------------------------------------------------
+
+# 19. Event Types
+
+The Index Engine SHALL process:
+
+Create
+
+Delete
+
+Modify
+
+Rename
+
+Move
+
+Overflow
+
+Batch updates SHALL be supported.
+
+--------------------------------------------------------------------
+
+# 20. Versioning
+
+Every index SHALL include:
+
+Schema Version
+
+Workspace Version
+
+Engine Version
+
+Language Provider Version
+
+Incompatible versions SHALL trigger automatic rebuilds.
+
+--------------------------------------------------------------------
+
+# 21. Failure Recovery
+
+If corruption is detected:
+
+Invalidate affected metadata
+
+↓
+
+Rebuild affected structures
+
+↓
+
+Preserve unaffected indexes
+
+↓
+
+Continue serving requests
+
+Complete repository rebuilds SHALL remain a last resort.
+
+--------------------------------------------------------------------
+
+# 22. Performance Objectives
+
+Initial Indexing
+
+Highly parallel
+
+Incremental Update
+
+<100 ms after filesystem notification (target)
+
+Metadata Lookup
+
+O(1) or logarithmic where appropriate
+
+Repeated Search
+
+Primarily cache hits
+
+Repository Reload
+
+Reuse persistent metadata whenever possible
+
+--------------------------------------------------------------------
+
+# 23. Diagnostics
+
+The Index Engine SHALL expose:
+
+Indexed File Count
+
+Directory Count
+
+Symbol Count
+
+Dependency Count
+
+Index Size
+
+Cache Hit Ratio
+
+Worker Utilization
+
+Index Latency
+
+Average Parse Time
+
+Rebuild Count
+
+--------------------------------------------------------------------
+
+# 24. Mermaid Diagram
+
+```mermaid
+flowchart TD
+
+FS[Filesystem]
+
+WATCH[Native File Watcher]
+
+QUEUE[Update Queue]
+
+INDEX[Index Engine]
+
+GRAPH[Repository Graph]
+
+DB[(SQLite)]
+
+SEARCH[Search Engine]
+
+CTX[Context Engine]
+
+FS --> WATCH
+WATCH --> QUEUE
+QUEUE --> INDEX
+INDEX --> GRAPH
+INDEX --> DB
+GRAPH --> SEARCH
+GRAPH --> CTX
+DB --> SEARCH
+DB --> CTX
+````
+
+---
+
+# 25. Future Expansion
+
+Future enhancements MAY include:
+
+Incremental AST storage
+
+Cross-workspace indexing
+
+Distributed indexing
+
+Language Server integration
+
+Semantic indexing
+
+Binary artifact indexing
+
+Repository snapshots
+
+Machine learning assisted indexing
+
+These features SHALL remain modular and optional.
+
+---
+
+# 26. Exit Criteria
+
+The File Index Engine is considered complete when:
+
+• Repository indexing is incremental.
+• Native filesystem events drive updates.
+• Metadata persists across restarts.
+• Repository graphs remain synchronized.
+• Search never depends on raw filesystem traversal after indexing.
+• Index corruption is recoverable.
+• Performance remains predictable for repositories ranging from small
+projects to repositories containing millions of files.
+
+====================================================================
+END OF DOCUMENT
+===============
+
+```
+```

@@ -1,0 +1,307 @@
+```text id="adr011"
+WorkspaceOS/docs/ADR/ADR-011-Hashing-Strategy.txt
+
+====================================================================
+WorkspaceOS
+Architecture Decision Record
+
+ADR-011
+Title       : BLAKE3 as the Primary Hashing Algorithm
+Status      : ACCEPTED
+Version     : 1.0
+Date         : TBD
+====================================================================
+
+# Context
+
+WorkspaceOS continuously monitors repositories to detect changes,
+maintain indexes, invalidate caches and determine whether context must
+be regenerated.
+
+Efficient and reliable change detection is critical because large
+repositories may contain hundreds of thousands of files.
+
+The hashing algorithm must therefore be:
+
+• Extremely fast
+• Cryptographically strong
+• Incrementally computable
+• Memory efficient
+• Cross-platform
+• Stable
+• Well maintained
+
+--------------------------------------------------------------------
+
+# Requirements
+
+The hashing algorithm MUST provide:
+
+✓ High throughput
+
+✓ Excellent scalability
+
+✓ Parallel computation
+
+✓ Low CPU overhead
+
+✓ Low memory usage
+
+✓ Collision resistance
+
+✓ Stable implementation
+
+✓ Cross-platform compatibility
+
+--------------------------------------------------------------------
+
+# Options Considered
+
+Option A
+
+BLAKE3
+
+------------------------------------------------------------
+
+Option B
+
+SHA-256
+
+------------------------------------------------------------
+
+Option C
+
+SHA-1
+
+------------------------------------------------------------
+
+Option D
+
+MD5
+
+------------------------------------------------------------
+
+Option E
+
+xxHash
+
+--------------------------------------------------------------------
+
+# Evaluation
+
+BLAKE3
+
+Pros
+
+✓ Extremely fast
+
+✓ Parallel by design
+
+✓ Modern cryptography
+
+✓ Excellent Rust implementation
+
+✓ Incremental hashing
+
+✓ SIMD acceleration
+
+✓ Small implementation
+
+Cons
+
+• Less universally known than SHA-256
+
+------------------------------------------------------------
+
+SHA-256
+
+Pros
+
+✓ Industry standard
+
+✓ Strong security
+
+Cons
+
+• Significantly slower
+
+------------------------------------------------------------
+
+SHA-1
+
+Pros
+
+✓ Widely supported
+
+Cons
+
+• Cryptographically broken
+
+------------------------------------------------------------
+
+MD5
+
+Pros
+
+✓ Fast
+
+Cons
+
+• Broken
+
+• Not acceptable for new systems
+
+------------------------------------------------------------
+
+xxHash
+
+Pros
+
+✓ Extremely fast
+
+Cons
+
+• Non-cryptographic
+
+• Not suitable where collision resistance matters
+
+--------------------------------------------------------------------
+
+# Decision
+
+WorkspaceOS SHALL use BLAKE3 as the default hashing algorithm for all
+internal content fingerprinting and cache invalidation.
+
+--------------------------------------------------------------------
+
+# Rationale
+
+BLAKE3 provides the best combination of:
+
+Performance
+
+Security
+
+Scalability
+
+Parallelism
+
+Implementation quality
+
+It substantially reduces hashing overhead compared with SHA-256 while
+maintaining strong cryptographic properties.
+
+--------------------------------------------------------------------
+
+# Responsibilities
+
+BLAKE3 SHALL be used for:
+
+File fingerprints
+
+Repository snapshots
+
+Index validation
+
+Cache keys
+
+Context cache invalidation
+
+Incremental change detection
+
+Artifact verification (where appropriate)
+
+It SHALL NOT be used as a password hashing algorithm.
+
+--------------------------------------------------------------------
+
+# Engineering Rules
+
+Hashing SHALL be:
+
+Deterministic
+
+Streaming where practical
+
+Parallelized when beneficial
+
+Performed only when required
+
+Previously computed hashes SHALL be reused whenever valid.
+
+Repeated hashing of unchanged files SHALL be avoided.
+
+--------------------------------------------------------------------
+
+# Performance Strategy
+
+WorkspaceOS SHALL:
+
+Reuse hashes aggressively
+
+Hash only changed files
+
+Hash incrementally
+
+Avoid full repository rehashes
+
+Leverage SIMD acceleration where available
+
+Parallelize hashing across CPU cores for large workloads
+
+The hashing subsystem SHALL scale with available hardware while
+remaining efficient on low-end systems.
+
+--------------------------------------------------------------------
+
+# Security
+
+Although BLAKE3 is cryptographically secure, WorkspaceOS SHALL NOT use
+it for password storage.
+
+Passwords and long-term secrets SHALL use dedicated password hashing
+algorithms (e.g., Argon2) where applicable.
+
+--------------------------------------------------------------------
+
+# Consequences
+
+Positive
+
+✓ Very high throughput
+
+✓ Excellent scalability
+
+✓ Low CPU overhead
+
+✓ Strong collision resistance
+
+✓ Excellent Rust ecosystem support
+
+Negative
+
+• Slightly less familiar than SHA-256 to some developers
+
+This tradeoff is acceptable because WorkspaceOS prioritizes measurable
+performance and modern cryptographic design.
+
+--------------------------------------------------------------------
+
+# Future Review
+
+This decision SHALL only be reconsidered if:
+
+• A future hashing algorithm demonstrates objectively superior
+performance, security and ecosystem maturity.
+
+Any replacement SHALL require:
+
+• Benchmark comparisons
+• Updated ADR
+• Migration strategy
+• Architecture review
+
+====================================================================
+Decision: ACCEPTED
+====================================================================
+```

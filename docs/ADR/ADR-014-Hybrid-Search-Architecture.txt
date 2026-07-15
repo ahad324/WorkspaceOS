@@ -1,0 +1,439 @@
+```text id="adr014"
+WorkspaceOS/docs/ADR/ADR-014-Hybrid-Search-Architecture.txt
+
+====================================================================
+WorkspaceOS
+Architecture Decision Record
+
+ADR-014
+Title       : Hybrid Search Architecture (SQLite + Tantivy)
+Status      : ACCEPTED
+Version     : 1.0
+Date         : TBD
+====================================================================
+
+# Context
+
+WorkspaceOS must answer repository queries with extremely low latency.
+
+Typical queries include:
+
+• Find symbol
+
+• Find file
+
+• Find implementation
+
+• Find configuration
+
+• Search imports
+
+• Search dependencies
+
+• Find references
+
+• Search documentation
+
+• Semantic context retrieval
+
+No single search engine is optimal for every workload.
+
+Relational metadata and full-text search have different performance
+characteristics and should be optimized independently.
+
+--------------------------------------------------------------------
+
+# Requirements
+
+The search subsystem MUST provide:
+
+✓ Millisecond-scale lookups
+
+✓ Incremental updates
+
+✓ Multi-language support
+
+✓ Full-text search
+
+✓ Metadata search
+
+✓ Symbol search
+
+✓ Low memory usage
+
+✓ Cross-platform support
+
+✓ Excellent scalability
+
+--------------------------------------------------------------------
+
+# Options Considered
+
+Option A
+
+SQLite only
+
+------------------------------------------------------------
+
+Option B
+
+Tantivy only
+
+------------------------------------------------------------
+
+Option C
+
+Hybrid (SQLite + Tantivy)
+
+------------------------------------------------------------
+
+Option D
+
+External Elasticsearch
+
+--------------------------------------------------------------------
+
+# Evaluation
+
+SQLite Only
+
+Pros
+
+✓ Simple architecture
+
+✓ Excellent metadata queries
+
+Cons
+
+• Limited full-text search capabilities
+• Ranking flexibility is limited
+
+------------------------------------------------------------
+
+Tantivy Only
+
+Pros
+
+✓ Excellent full-text search
+✓ Fast indexed retrieval
+
+Cons
+
+• Not suitable for relational metadata
+• Poor fit for complex graph queries
+
+------------------------------------------------------------
+
+Hybrid
+
+Pros
+
+✓ Best tool for each workload
+✓ Excellent performance
+✓ Highly scalable
+✓ Flexible ranking
+
+Cons
+
+• Additional synchronization complexity
+
+------------------------------------------------------------
+
+Elasticsearch
+
+Pros
+
+✓ Enterprise-grade search
+
+Cons
+
+• External dependency
+• High memory usage
+• Operational complexity
+• Unsuitable for local lightweight deployment
+
+--------------------------------------------------------------------
+
+# Decision
+
+WorkspaceOS SHALL implement a hybrid search architecture.
+
+SQLite SHALL be the authoritative metadata store.
+
+Tantivy SHALL be used for indexed full-text search where benchmark
+results demonstrate a measurable advantage.
+
+This is an optimization—not a dependency for correctness.
+
+--------------------------------------------------------------------
+
+# Responsibilities
+
+SQLite SHALL store:
+
+Workspace metadata
+
+File metadata
+
+Repository graph
+
+Symbols
+
+Dependencies
+
+Configuration
+
+Context metadata
+
+Audit metadata
+
+Search metadata
+
+------------------------------------------------------------
+
+Tantivy SHALL index:
+
+Source code text
+
+Documentation
+
+Comments (configurable)
+
+Markdown
+
+Configuration files (where beneficial)
+
+User notes (future)
+
+--------------------------------------------------------------------
+
+# Search Routing
+
+The Search Engine SHALL automatically route queries.
+
+Examples:
+
+Find symbol
+
+↓
+
+SQLite
+
+--------------------------------
+
+Find file
+
+↓
+
+SQLite
+
+--------------------------------
+
+Find dependency
+
+↓
+
+SQLite
+
+--------------------------------
+
+Search text
+
+↓
+
+Tantivy
+
+--------------------------------
+
+Search documentation
+
+↓
+
+Tantivy
+
+--------------------------------
+
+Hybrid query
+
+↓
+
+SQLite
+
+↓
+
+Tantivy
+
+↓
+
+Ranking Engine
+
+The caller SHALL NOT need to know which backend is used.
+
+--------------------------------------------------------------------
+
+# Architecture
+
+User Query
+
+↓
+
+Intent Detection
+
+↓
+
+Search Router
+
+↓
+
+Metadata Search (SQLite)
+
++
+
+Full-Text Search (Tantivy)
+
+↓
+
+Merge Results
+
+↓
+
+Ranking Engine
+
+↓
+
+Context Engine
+
+↓
+
+AI Response
+
+--------------------------------------------------------------------
+
+# Synchronization
+
+Tantivy indexes SHALL be updated incrementally.
+
+Whenever repository events occur:
+
+Filesystem Event
+
+↓
+
+Index Engine
+
+↓
+
+SQLite Update
+
+↓
+
+Tantivy Update (if applicable)
+
+↓
+
+Repository Graph Update
+
+↓
+
+Context Cache Invalidation
+
+Synchronization SHALL be atomic where practical.
+
+--------------------------------------------------------------------
+
+# Performance Strategy
+
+WorkspaceOS SHALL:
+
+Avoid rebuilding search indexes
+
+Perform incremental indexing
+
+Batch updates
+
+Reuse search readers
+
+Optimize common queries
+
+Profile ranking performance
+
+Benchmark all search improvements
+
+--------------------------------------------------------------------
+
+# Failure Strategy
+
+If Tantivy is temporarily unavailable or rebuilding:
+
+WorkspaceOS SHALL continue operating using SQLite.
+
+Full-text search performance MAY degrade, but correctness SHALL be
+maintained.
+
+Graceful degradation is required.
+
+--------------------------------------------------------------------
+
+# Engineering Rules
+
+Search implementations SHALL:
+
+Remain deterministic
+
+Support cancellation
+
+Avoid unnecessary allocations
+
+Use prepared queries
+
+Avoid duplicate indexing
+
+Respect workspace boundaries
+
+Never expose unauthorized data
+
+--------------------------------------------------------------------
+
+# Consequences
+
+Positive
+
+✓ Extremely fast metadata queries
+
+✓ High-performance full-text search
+
+✓ Excellent scalability
+
+✓ Flexible architecture
+
+✓ Graceful degradation
+
+Negative
+
+• Additional synchronization logic
+
+This complexity is justified by improved search quality and performance.
+
+--------------------------------------------------------------------
+
+# Future Review
+
+This decision SHALL be periodically benchmarked.
+
+If SQLite's native capabilities or another embedded search engine
+provides superior measurable performance without increasing complexity,
+the Tantivy integration MAY be reconsidered.
+
+Any architectural change SHALL require:
+
+• Benchmark evidence
+• Updated ADR
+• Migration strategy
+• Architecture review
+
+====================================================================
+Decision: ACCEPTED
+====================================================================
+```
+
+**This is actually one of the most important ADRs in the whole project.** It formalizes a principle we'll follow throughout WorkspaceOS: **use the right tool for each workload, but don't add complexity unless benchmarks prove it's worthwhile.** That philosophy will keep the system both fast and maintainable over time.

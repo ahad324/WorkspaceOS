@@ -1,0 +1,420 @@
+```text id="adr005"
+WorkspaceOS/docs/ADR/ADR-005-Axum.txt
+
+====================================================================
+WorkspaceOS
+Architecture Decision Record
+
+ADR-005
+Title       : Axum as the HTTP and MCP Server Framework
+Status      : ACCEPTED
+Version     : 1.0
+Date         : TBD
+====================================================================
+
+# Context
+
+WorkspaceOS exposes services that communicate with external AI clients.
+
+These include:
+
+• MCP Server
+• REST Management API (future)
+• Health Endpoints
+• Tunnel Endpoints
+• Diagnostics
+• Metrics
+• Authentication
+• Streaming Responses
+
+The server framework must deliver:
+
+• Extremely high performance
+• Low latency
+• Excellent async support
+• Strong type safety
+• Native Tokio integration
+• Long-term maintainability
+
+--------------------------------------------------------------------
+
+# Requirements
+
+The framework MUST provide:
+
+✓ Native Tokio integration
+
+✓ Excellent performance
+
+✓ Middleware support
+
+✓ Strong typing
+
+✓ Async handlers
+
+✓ WebSocket support
+
+✓ Streaming support
+
+✓ Authentication middleware
+
+✓ Mature ecosystem
+
+✓ Maintainability
+
+--------------------------------------------------------------------
+
+# Options Considered
+
+Option A
+
+Axum
+
+------------------------------------------------------------
+
+Option B
+
+Actix Web
+
+------------------------------------------------------------
+
+Option C
+
+Warp
+
+------------------------------------------------------------
+
+Option D
+
+Rocket
+
+------------------------------------------------------------
+
+Option E
+
+Hyper (directly)
+
+--------------------------------------------------------------------
+
+# Evaluation
+
+Axum
+
+Pros
+
+✓ Built on Hyper
+
+✓ Native Tokio integration
+
+✓ Excellent type safety
+
+✓ Tower middleware ecosystem
+
+✓ Excellent maintainability
+
+✓ Strong community
+
+✓ Clean architecture
+
+✓ Modern design
+
+Cons
+
+• Slightly more verbose than some frameworks
+
+------------------------------------------------------------
+
+Actix Web
+
+Pros
+
+✓ Extremely fast
+
+✓ Mature
+
+Cons
+
+• More opinionated ecosystem
+
+• Actor model adds unnecessary complexity for WorkspaceOS
+
+------------------------------------------------------------
+
+Warp
+
+Pros
+
+✓ Good performance
+
+Cons
+
+• Complex filter composition
+
+• Harder learning curve
+
+------------------------------------------------------------
+
+Rocket
+
+Pros
+
+✓ Pleasant developer experience
+
+Cons
+
+• Smaller ecosystem
+
+• Less flexibility
+
+------------------------------------------------------------
+
+Hyper
+
+Pros
+
+✓ Maximum control
+
+✓ Excellent performance
+
+Cons
+
+• Very low-level
+
+• Significant implementation effort
+
+--------------------------------------------------------------------
+
+# Decision
+
+WorkspaceOS SHALL use Axum as the primary HTTP framework.
+
+Axum SHALL power:
+
+• MCP Server
+• Future REST APIs
+• Diagnostics endpoints
+• Health checks
+• Metrics endpoints
+
+--------------------------------------------------------------------
+
+# Rationale
+
+Axum provides the best balance of:
+
+Performance
+
+Maintainability
+
+Flexibility
+
+Type safety
+
+Middleware ecosystem
+
+Compatibility with Tokio
+
+Its integration with Tower allows middleware to remain modular and
+composable.
+
+--------------------------------------------------------------------
+
+# Architecture
+
+Incoming Request
+
+↓
+
+Tower Middleware
+
+↓
+
+Authentication
+
+↓
+
+Authorization
+
+↓
+
+Capability Evaluation
+
+↓
+
+Route Handler
+
+↓
+
+WorkspaceOS Core
+
+↓
+
+Response
+
+Business logic SHALL remain inside the Core.
+
+Handlers SHALL remain thin.
+
+--------------------------------------------------------------------
+
+# Middleware Pipeline
+
+Typical request flow:
+
+Request
+
+↓
+
+Request ID
+
+↓
+
+Tracing
+
+↓
+
+Rate Limiting
+
+↓
+
+Authentication
+
+↓
+
+Authorization
+
+↓
+
+Capability Evaluation
+
+↓
+
+Validation
+
+↓
+
+Route Handler
+
+↓
+
+Structured Response
+
+Middleware SHALL remain reusable and independently testable.
+
+--------------------------------------------------------------------
+
+# Streaming
+
+Axum SHALL support:
+
+Server-Sent Events (SSE)
+
+Streaming MCP responses
+
+Progress updates
+
+Large result streaming
+
+Cancellation
+
+Streaming SHALL avoid buffering large payloads in memory.
+
+--------------------------------------------------------------------
+
+# Engineering Rules
+
+Handlers SHALL:
+
+Remain small.
+
+Delegate immediately to the Core.
+
+Avoid database logic.
+
+Avoid filesystem logic.
+
+Avoid business rules.
+
+Avoid duplicated validation.
+
+Responses SHALL use typed models.
+
+Errors SHALL be standardized.
+
+--------------------------------------------------------------------
+
+# Performance Guidelines
+
+The server SHALL optimize for:
+
+Low latency
+
+Minimal allocations
+
+Keep-alive connections
+
+Efficient middleware
+
+Streaming
+
+Backpressure handling
+
+Request processing SHALL remain deterministic.
+
+--------------------------------------------------------------------
+
+# Security
+
+Authentication SHALL occur before route execution.
+
+Authorization SHALL be enforced before business logic.
+
+Capability checks SHALL be mandatory.
+
+Sensitive information SHALL never be included in responses or logs.
+
+--------------------------------------------------------------------
+
+# Consequences
+
+Positive
+
+✓ High performance
+
+✓ Excellent maintainability
+
+✓ Strong middleware ecosystem
+
+✓ Native Tokio support
+
+✓ Clean architecture
+
+✓ Future-proof for additional APIs
+
+Negative
+
+• Slightly more explicit code than some frameworks
+
+This tradeoff improves readability and maintainability.
+
+--------------------------------------------------------------------
+
+# Future Review
+
+This decision SHALL only be reconsidered if:
+
+• Axum becomes unmaintained, or
+• A future framework demonstrates objectively superior performance,
+security, maintainability and ecosystem maturity.
+
+Any replacement SHALL require:
+
+• Benchmark comparisons
+• Updated ADR
+• Migration plan
+• Architecture review
+
+====================================================================
+Decision: ACCEPTED
+====================================================================
+```

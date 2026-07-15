@@ -1,0 +1,485 @@
+````text id="9xv42m"
+WorkspaceOS/docs/SAD/15-Benchmarks.txt
+
+====================================================================
+WorkspaceOS
+Software Architecture Document (SAD)
+
+Document ID      : SAD-015
+Document Name    : Performance Benchmarks & Engineering Metrics
+Version          : 1.0.0
+Status           : Draft
+Owner            : WorkspaceOS
+Classification   : Public
+====================================================================
+
+# IMPORTANT NOTE
+
+This document defines the measurable engineering targets for WorkspaceOS.
+
+Performance claims SHALL be supported by reproducible benchmarks rather
+than assumptions or anecdotal observations.
+
+All benchmark results SHALL include:
+
+• Hardware specifications
+• Operating system
+• Benchmark version
+• Compiler version
+• Dataset
+• Methodology
+• Sample size
+• Statistical summary
+
+Benchmark results SHALL be reproducible by other contributors.
+
+--------------------------------------------------------------------
+
+# 1. Purpose
+
+The Benchmark Framework exists to:
+
+• Validate architectural decisions
+• Detect regressions
+• Compare implementations
+• Guide optimization efforts
+• Provide objective engineering metrics
+
+No optimization SHALL be accepted without benchmark evidence.
+
+--------------------------------------------------------------------
+
+# 2. Benchmark Philosophy
+
+WorkspaceOS SHALL optimize for:
+
+Low latency
+
+Consistent latency
+
+Low memory usage
+
+Predictable CPU usage
+
+Incremental performance
+
+Scalability
+
+Responsiveness
+
+Peak throughput SHALL never compromise responsiveness.
+
+--------------------------------------------------------------------
+
+# 3. Reference Hardware Classes
+
+Benchmarks SHALL be executed on representative systems.
+
+Class A — Low-End
+
+RAM: 4 GB
+
+CPU: 2 Cores
+
+Storage: HDD
+
+------------------------------------------------------------
+
+Class B — Mainstream
+
+RAM: 8–16 GB
+
+CPU: 4–8 Cores
+
+Storage: SSD
+
+------------------------------------------------------------
+
+Class C — High-End
+
+RAM: 32+ GB
+
+CPU: 8–32 Cores
+
+Storage: NVMe SSD
+
+The runtime SHALL adapt behavior across all classes.
+
+--------------------------------------------------------------------
+
+# 4. Startup Benchmarks
+
+Metrics:
+
+Cold startup
+
+Warm startup
+
+Configuration load
+
+Workspace restore
+
+Target values:
+
+Cold startup: < 2 s
+
+Warm startup: < 500 ms
+
+Configuration load: < 50 ms
+
+Workspace restore: < 200 ms
+
+--------------------------------------------------------------------
+
+# 5. Repository Benchmarks
+
+Datasets SHALL include:
+
+Small (<1,000 files)
+
+Medium (10,000 files)
+
+Large (100,000 files)
+
+Very Large (1,000,000+ synthetic files)
+
+Metrics:
+
+Initial indexing
+
+Incremental update
+
+Metadata lookup
+
+Repository reload
+
+--------------------------------------------------------------------
+
+# 6. Search Benchmarks
+
+Metrics:
+
+Filename search
+
+Path search
+
+Symbol search
+
+Dependency search
+
+Architecture search
+
+Target latency:
+
+< 50 ms after indexing for common queries.
+
+--------------------------------------------------------------------
+
+# 7. Context Engine Benchmarks
+
+Metrics:
+
+Intent classification
+
+Dependency traversal
+
+Context assembly
+
+Token optimization
+
+Repeated request latency
+
+Target:
+
+Context assembly < 100 ms on medium repositories.
+
+--------------------------------------------------------------------
+
+# 8. Filesystem Benchmarks
+
+Measure:
+
+Watcher latency
+
+Rename events
+
+Batch updates
+
+Mass file creation
+
+Mass deletion
+
+Overflow recovery
+
+The Index Engine SHALL recover without requiring a full rebuild.
+
+--------------------------------------------------------------------
+
+# 9. Memory Benchmarks
+
+Metrics:
+
+Idle memory
+
+Peak indexing memory
+
+Search memory
+
+Context generation memory
+
+Cache utilization
+
+Memory growth over long-running sessions
+
+Memory leaks SHALL block release.
+
+--------------------------------------------------------------------
+
+# 10. CPU Benchmarks
+
+Metrics:
+
+Idle CPU
+
+Peak indexing CPU
+
+Search CPU
+
+Context generation CPU
+
+Background task CPU
+
+Idle CPU target:
+
+Approximately 0%
+
+--------------------------------------------------------------------
+
+# 11. Scheduler Benchmarks
+
+Metrics:
+
+Worker utilization
+
+Queue latency
+
+Task starvation
+
+Priority inversion
+
+Cancellation latency
+
+The scheduler SHALL prevent starvation of interactive tasks.
+
+--------------------------------------------------------------------
+
+# 12. Cache Benchmarks
+
+Metrics:
+
+Hit ratio
+
+Miss ratio
+
+Eviction frequency
+
+Warm-up time
+
+Cache invalidation latency
+
+Multiple cache policies SHALL be benchmarked before selection.
+
+--------------------------------------------------------------------
+
+# 13. Tunnel Benchmarks
+
+Metrics:
+
+Tunnel startup
+
+Reconnect latency
+
+Heartbeat overhead
+
+Round-trip latency
+
+Provider failover time
+
+Transport overhead SHALL remain minimal.
+
+--------------------------------------------------------------------
+
+# 14. Desktop Benchmarks
+
+Metrics:
+
+Window creation
+
+Navigation latency
+
+UI render time
+
+Large table rendering
+
+Chart updates
+
+Memory consumption
+
+UI responsiveness SHALL remain independent of repository size.
+
+--------------------------------------------------------------------
+
+# 15. Security Benchmarks
+
+Metrics:
+
+Authentication latency
+
+Authorization latency
+
+Capability evaluation
+
+Secret retrieval
+
+Audit logging overhead
+
+Security SHALL introduce minimal runtime overhead.
+
+--------------------------------------------------------------------
+
+# 16. Stress Benchmarks
+
+Workloads:
+
+Continuous indexing
+
+Massive repository updates
+
+High-frequency searches
+
+Concurrent AI sessions
+
+Long-running operation
+
+System behavior SHALL remain predictable under sustained load.
+
+--------------------------------------------------------------------
+
+# 17. Reliability Benchmarks
+
+Measure:
+
+Crash recovery
+
+Index rebuild
+
+Workspace restore
+
+Unexpected shutdown recovery
+
+Plugin failure isolation
+
+Data integrity SHALL always take precedence over recovery speed.
+
+--------------------------------------------------------------------
+
+# 18. Benchmark Reporting
+
+Each report SHALL include:
+
+Benchmark name
+
+Date
+
+Commit hash
+
+Hardware class
+
+Configuration
+
+Execution time
+
+Variance
+
+Regression comparison
+
+Conclusion
+
+Historical reports SHALL be retained.
+
+--------------------------------------------------------------------
+
+# 19. Continuous Benchmarking
+
+Selected benchmarks SHALL execute automatically in CI.
+
+Performance regressions beyond predefined thresholds SHALL require
+investigation before merge.
+
+Benchmark history SHALL be version-controlled.
+
+--------------------------------------------------------------------
+
+# 20. Mermaid Diagram
+
+```mermaid
+flowchart LR
+
+Code Change
+    --> Benchmark
+Benchmark
+    --> Compare
+Compare
+    --> Pass
+Compare
+    --> Regression
+Regression
+    --> Investigation
+Investigation
+    --> Optimize
+Optimize
+    --> Benchmark
+````
+
+---
+
+# 21. Success Metrics
+
+WorkspaceOS SHALL be considered performance-ready when:
+
+• Startup targets are consistently achieved.
+• Repository indexing scales predictably.
+• Search remains low latency.
+• Context generation meets defined budgets.
+• Idle resource usage remains minimal.
+• Benchmark regressions are continuously monitored.
+• Performance claims are supported by reproducible evidence.
+
+---
+
+# 22. Future Benchmark Expansion
+
+Future benchmark suites MAY include:
+
+• Cross-platform comparisons
+• Language-provider comparisons
+• Plugin performance
+• Distributed workspace scenarios
+• Multi-user workloads
+• AI request throughput
+• Semantic indexing performance
+• Energy efficiency measurements
+
+The benchmark framework SHALL evolve alongside WorkspaceOS while
+maintaining historical comparability.
+
+====================================================================
+END OF DOCUMENT
+===============
+
+```
+
+**This completes the initial SAD document set.**
+
+One recommendation before implementation: after these 15 SAD documents, we should create a **docs/ADR/** (Architecture Decision Records) folder. The SAD defines *what* the architecture is; ADRs record *why* each major technical choice was made (e.g., Tauri over Electron, SQLite over RocksDB, BLAKE3 vs XXH3, Tokio runtime, W-TinyLFU cache, Axum vs Actix, JWT + API Keys, etc.). That separation will make the project much easier to evolve over time without rewriting the architecture documents.
+```

@@ -1,0 +1,466 @@
+```text id="adr006"
+WorkspaceOS/docs/ADR/ADR-006-MCP-Architecture.txt
+
+====================================================================
+WorkspaceOS
+Architecture Decision Record
+
+ADR-006
+Title       : Model Context Protocol (MCP) Architecture
+Status      : ACCEPTED
+Version     : 1.0
+Date         : TBD
+====================================================================
+
+# Context
+
+The primary purpose of WorkspaceOS is to allow AI systems to interact
+with local development environments securely, efficiently and with full
+repository awareness.
+
+The industry is converging on the Model Context Protocol (MCP) as the
+standard interface between AI clients and external tools.
+
+Rather than implementing provider-specific integrations for ChatGPT,
+Grok, Claude, Gemini, Qwen and future AI systems, WorkspaceOS SHALL
+implement the MCP specification as the primary integration layer.
+
+This decision enables long-term compatibility while minimizing vendor
+lock-in.
+
+--------------------------------------------------------------------
+
+# Requirements
+
+The integration layer MUST provide:
+
+✓ AI-provider independence
+
+✓ Strong security
+
+✓ Tool discovery
+
+✓ Tool versioning
+
+✓ Streaming responses
+
+✓ Request cancellation
+
+✓ Authentication
+
+✓ Authorization
+
+✓ Capability enforcement
+
+✓ Extensibility
+
+✓ Low latency
+
+--------------------------------------------------------------------
+
+# Options Considered
+
+Option A
+
+Native MCP Implementation
+
+------------------------------------------------------------
+
+Option B
+
+Provider-specific APIs
+
+------------------------------------------------------------
+
+Option C
+
+Custom proprietary protocol
+
+------------------------------------------------------------
+
+Option D
+
+REST-only integration
+
+--------------------------------------------------------------------
+
+# Evaluation
+
+Native MCP
+
+Pros
+
+✓ Industry direction
+
+✓ Standardized
+
+✓ Multi-provider
+
+✓ Extensible
+
+✓ Future compatible
+
+✓ Tool discovery
+
+✓ Streaming
+
+✓ Strong interoperability
+
+Cons
+
+• Specification will evolve
+
+------------------------------------------------------------
+
+Provider APIs
+
+Pros
+
+✓ Immediate compatibility
+
+Cons
+
+• Vendor lock-in
+
+• Duplicate implementations
+
+• High maintenance
+
+------------------------------------------------------------
+
+Custom Protocol
+
+Pros
+
+✓ Full control
+
+Cons
+
+• No ecosystem
+
+• Poor interoperability
+
+• Reinvents existing standards
+
+------------------------------------------------------------
+
+REST
+
+Pros
+
+✓ Simple
+
+Cons
+
+• Not designed for AI tool interaction
+
+• Missing MCP semantics
+
+--------------------------------------------------------------------
+
+# Decision
+
+WorkspaceOS SHALL expose its functionality through a standards-compliant
+Model Context Protocol (MCP) server.
+
+Provider-specific adapters MAY be implemented in the future, but the MCP
+runtime SHALL remain the canonical interface.
+
+--------------------------------------------------------------------
+
+# Architecture
+
+                AI Client
+                    │
+                    ▼
+          MCP Transport Layer
+                    │
+                    ▼
+          Authentication Layer
+                    │
+                    ▼
+          Authorization Layer
+                    │
+                    ▼
+         Capability Evaluation
+                    │
+                    ▼
+             Tool Dispatcher
+                    │
+                    ▼
+          WorkspaceOS Core
+                    │
+                    ▼
+             Structured Result
+
+The MCP layer SHALL remain transport-only.
+
+Business logic SHALL NEVER reside inside the MCP implementation.
+
+--------------------------------------------------------------------
+
+# Tool Lifecycle
+
+Each request SHALL follow this lifecycle:
+
+1. Connection Established
+
+↓
+
+2. Session Created
+
+↓
+
+3. Authentication
+
+↓
+
+4. Authorization
+
+↓
+
+5. Capability Validation
+
+↓
+
+6. Input Validation
+
+↓
+
+7. Tool Execution
+
+↓
+
+8. Streaming (if applicable)
+
+↓
+
+9. Result Serialization
+
+↓
+
+10. Audit Logging
+
+↓
+
+11. Session Cleanup
+
+Each stage SHALL be independently testable.
+
+--------------------------------------------------------------------
+
+# Tool Registration
+
+Every tool SHALL declare:
+
+Tool Name
+
+Description
+
+Version
+
+Input Schema
+
+Output Schema
+
+Permissions
+
+Required Capabilities
+
+Estimated Cost
+
+Estimated Duration
+
+Streaming Support
+
+Cancellation Support
+
+The registry SHALL support runtime discovery.
+
+--------------------------------------------------------------------
+
+# Session Model
+
+WorkspaceOS SHALL support multiple concurrent MCP sessions.
+
+Each session SHALL maintain:
+
+Authenticated identity
+
+Granted capabilities
+
+Workspace scope
+
+Active operations
+
+Cancellation tokens
+
+Rate limits
+
+Audit identifiers
+
+Sessions SHALL remain isolated.
+
+--------------------------------------------------------------------
+
+# Security Model
+
+The MCP runtime SHALL NEVER trust incoming requests.
+
+Every request SHALL pass:
+
+Authentication
+
+↓
+
+Authorization
+
+↓
+
+Workspace Validation
+
+↓
+
+Capability Evaluation
+
+↓
+
+Schema Validation
+
+↓
+
+Execution
+
+↓
+
+Audit Logging
+
+Transport security alone SHALL NEVER be considered sufficient.
+
+--------------------------------------------------------------------
+
+# Error Model
+
+Errors SHALL be:
+
+Structured
+
+Versioned
+
+Machine-readable
+
+Human-readable
+
+Each error SHALL include:
+
+Error Code
+
+Message
+
+Category
+
+Correlation ID
+
+Recovery Hint
+
+Internal implementation details SHALL never be exposed.
+
+--------------------------------------------------------------------
+
+# Streaming
+
+WorkspaceOS SHALL support streaming for:
+
+Repository indexing
+
+Large searches
+
+Context generation
+
+Diagnostics
+
+Plugin operations
+
+Long-running analysis
+
+Streaming SHALL minimize latency and memory consumption.
+
+--------------------------------------------------------------------
+
+# Versioning
+
+The MCP layer SHALL support:
+
+Protocol version negotiation
+
+Tool versioning
+
+Backward compatibility where practical
+
+Graceful deprecation
+
+Breaking changes SHALL require explicit version updates.
+
+--------------------------------------------------------------------
+
+# Performance Guidelines
+
+The MCP runtime SHALL prioritize:
+
+Low request latency
+
+Minimal serialization overhead
+
+Streaming over buffering
+
+Efficient cancellation
+
+Minimal allocations
+
+Connection reuse
+
+Interactive operations SHALL not be blocked by background work.
+
+--------------------------------------------------------------------
+
+# Consequences
+
+Positive
+
+✓ Multi-provider compatibility
+
+✓ Future-proof architecture
+
+✓ Reduced maintenance burden
+
+✓ Standardized tool interface
+
+✓ Excellent extensibility
+
+Negative
+
+• Requires tracking future MCP specification changes
+
+This is considered an acceptable maintenance cost.
+
+--------------------------------------------------------------------
+
+# Future Review
+
+This decision SHALL only be reconsidered if:
+
+• MCP is superseded by a broadly adopted successor standard, or
+• The protocol no longer satisfies WorkspaceOS performance,
+security or interoperability requirements.
+
+Any replacement SHALL require:
+
+• Updated benchmarks
+• Updated ADR
+• Migration strategy
+• Architecture review
+
+====================================================================
+Decision: ACCEPTED
+====================================================================
+```

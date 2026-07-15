@@ -1,0 +1,433 @@
+```text id="adr010"
+WorkspaceOS/docs/ADR/ADR-010-Plugin-System.txt
+
+====================================================================
+WorkspaceOS
+Architecture Decision Record
+
+ADR-010
+Title       : Secure Plugin Architecture
+Status      : ACCEPTED
+Version     : 1.0
+Date         : TBD
+====================================================================
+
+# Context
+
+WorkspaceOS should remain lightweight while allowing advanced users,
+organizations, and the open-source community to extend its
+functionality.
+
+Rather than continuously expanding the Core Runtime, optional features
+SHALL be implemented as plugins.
+
+Examples include:
+
+• Language analyzers
+• AI provider adapters
+• Code generators
+• Security scanners
+• Git integrations
+• CI/CD integrations
+• Custom MCP tools
+• Enterprise features
+• Local LLM integrations
+• Cloud integrations
+
+The Core SHALL remain minimal and stable.
+
+--------------------------------------------------------------------
+
+# Requirements
+
+The plugin architecture MUST provide:
+
+✓ Strong isolation
+
+✓ Permission enforcement
+
+✓ Independent lifecycle
+
+✓ Version compatibility
+
+✓ Stable APIs
+
+✓ Hot loading (future)
+
+✓ Low runtime overhead
+
+✓ Secure execution
+
+✓ Crash isolation
+
+✓ Easy distribution
+
+--------------------------------------------------------------------
+
+# Options Considered
+
+Option A
+
+Capability-Based Native Plugin System
+
+------------------------------------------------------------
+
+Option B
+
+Dynamic Shared Libraries (DLL/SO)
+
+------------------------------------------------------------
+
+Option C
+
+Embedded Scripting (Lua/JS)
+
+------------------------------------------------------------
+
+Option D
+
+Separate Plugin Processes
+
+--------------------------------------------------------------------
+
+# Evaluation
+
+Capability-Based Native Plugins
+
+Pros
+
+✓ High performance
+
+✓ Strong typing
+
+✓ Excellent integration
+
+✓ Low overhead
+
+Cons
+
+• Requires stable SDK
+
+------------------------------------------------------------
+
+Dynamic Libraries
+
+Pros
+
+✓ Native speed
+
+Cons
+
+• ABI compatibility issues
+
+• Platform-specific concerns
+
+------------------------------------------------------------
+
+Embedded Scripting
+
+Pros
+
+✓ Easy plugin development
+
+Cons
+
+• Lower performance
+
+• Runtime dependency
+
+------------------------------------------------------------
+
+Separate Processes
+
+Pros
+
+✓ Excellent isolation
+
+Cons
+
+• IPC overhead
+
+• Higher resource usage
+
+--------------------------------------------------------------------
+
+# Decision
+
+WorkspaceOS SHALL implement a capability-based plugin system using a
+stable Plugin SDK.
+
+The architecture SHALL allow future evolution toward process isolation
+for untrusted plugins if required.
+
+--------------------------------------------------------------------
+
+# Plugin Responsibilities
+
+Plugins MAY:
+
+Provide additional MCP tools
+
+Analyze repositories
+
+Generate diagnostics
+
+Integrate external services
+
+Extend the Desktop UI (future)
+
+Provide language-specific intelligence
+
+Register custom commands
+
+Plugins SHALL NOT modify WorkspaceOS Core behavior directly.
+
+--------------------------------------------------------------------
+
+# Architecture
+
+                WorkspaceOS Core
+                       │
+                Plugin Manager
+                       │
+              Permission Validator
+                       │
+                Plugin Runtime
+                       │
+                   Plugin SDK
+                       │
+                     Plugins
+
+The Plugin Manager SHALL mediate all interactions.
+
+--------------------------------------------------------------------
+
+# Plugin Lifecycle
+
+Discovery
+
+↓
+
+Validation
+
+↓
+
+Compatibility Check
+
+↓
+
+Permission Evaluation
+
+↓
+
+Initialization
+
+↓
+
+Registration
+
+↓
+
+Execution
+
+↓
+
+Shutdown
+
+↓
+
+Cleanup
+
+Plugins SHALL fail gracefully without affecting the Core.
+
+--------------------------------------------------------------------
+
+# Permission Model
+
+Every plugin SHALL declare required capabilities.
+
+Examples:
+
+workspace.read
+
+context.generate
+
+git.read
+
+git.execute
+
+network.outbound
+
+plugin.storage
+
+diagnostics.read
+
+filesystem.watch
+
+Capabilities SHALL require explicit user approval.
+
+--------------------------------------------------------------------
+
+# Isolation
+
+Plugins SHALL be isolated from one another.
+
+A plugin SHALL NOT:
+
+Access another plugin's private state
+
+Modify Core memory directly
+
+Bypass the Security Engine
+
+Bypass the Capability System
+
+Access unauthorized workspaces
+
+Isolation SHALL be enforced by the Plugin Manager.
+
+--------------------------------------------------------------------
+
+# Versioning
+
+Each plugin SHALL declare:
+
+Plugin Name
+
+Unique Identifier
+
+Version
+
+Supported SDK Version
+
+Required Capabilities
+
+Dependencies
+
+Compatibility SHALL be validated during loading.
+
+--------------------------------------------------------------------
+
+# SDK
+
+The Plugin SDK SHALL expose only stable, documented interfaces.
+
+Examples:
+
+Workspace APIs
+
+Search APIs
+
+Context APIs
+
+Logging APIs
+
+Configuration APIs
+
+Metrics APIs
+
+Tool Registration APIs
+
+Direct access to internal implementation details is prohibited.
+
+--------------------------------------------------------------------
+
+# Error Handling
+
+Plugin failures SHALL:
+
+Be isolated
+
+Be logged
+
+Generate diagnostics
+
+Not terminate WorkspaceOS
+
+Critical failures MAY disable the offending plugin automatically.
+
+--------------------------------------------------------------------
+
+# Performance
+
+Plugins SHALL be expected to:
+
+Minimize memory allocations
+
+Avoid blocking operations
+
+Respect cancellation
+
+Avoid busy waiting
+
+Use asynchronous APIs where appropriate
+
+The Plugin Manager SHALL monitor plugin resource usage.
+
+--------------------------------------------------------------------
+
+# Security
+
+Plugins SHALL be considered untrusted by default.
+
+Every plugin SHALL undergo:
+
+Signature validation (future)
+
+Permission evaluation
+
+Capability enforcement
+
+Compatibility validation
+
+Audit logging
+
+Security SHALL always take precedence over plugin functionality.
+
+--------------------------------------------------------------------
+
+# Consequences
+
+Positive
+
+✓ Extensible architecture
+
+✓ Stable Core
+
+✓ Community ecosystem
+
+✓ Enterprise customization
+
+✓ Long-term flexibility
+
+Negative
+
+• Additional SDK maintenance
+
+• Version compatibility management
+
+These tradeoffs are acceptable given the significant extensibility
+benefits.
+
+--------------------------------------------------------------------
+
+# Future Review
+
+This decision SHALL only be reconsidered if:
+
+• Plugin requirements evolve beyond the capabilities of the current
+architecture, or
+• A demonstrably superior extensibility model emerges with measurable
+advantages in security, maintainability and performance.
+
+Any architectural change SHALL require:
+
+• Updated ADR
+• Migration strategy
+• Compatibility analysis
+• Architecture review
+
+====================================================================
+Decision: ACCEPTED
+====================================================================
+```

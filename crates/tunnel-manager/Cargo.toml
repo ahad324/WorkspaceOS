@@ -1,0 +1,9 @@
+[package]
+name = "tunnel-manager"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }

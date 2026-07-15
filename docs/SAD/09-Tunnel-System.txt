@@ -1,0 +1,624 @@
+````text
+WorkspaceOS/docs/SAD/09-Tunnel-System.txt
+
+====================================================================
+WorkspaceOS
+Software Architecture Document (SAD)
+
+Document ID      : SAD-009
+Document Name    : Tunnel & Remote Access System
+Version          : 1.0.0
+Status           : Draft
+Owner            : WorkspaceOS
+Classification   : Public
+====================================================================
+
+# IMPORTANT NOTE
+
+The Tunnel System is one of the most security-sensitive components of
+WorkspaceOS.
+
+Its purpose is NOT simply to expose an MCP server to the Internet.
+
+Its purpose is to securely publish a local WorkspaceOS instance while
+preserving the same security guarantees available during local-only
+operation.
+
+The Tunnel System SHALL NEVER weaken authentication, authorization,
+workspace isolation, capability enforcement, or audit logging.
+
+Remote access SHALL be considered an optional transport layer.
+
+WorkspaceOS SHALL function perfectly without any remote connectivity.
+
+--------------------------------------------------------------------
+
+# 1. Purpose
+
+The Tunnel System provides secure remote connectivity for AI clients.
+
+It enables external AI systems to securely communicate with a locally
+running WorkspaceOS instance without requiring manual network
+configuration.
+
+The Tunnel System SHALL abstract tunnel providers behind a common
+interface.
+
+--------------------------------------------------------------------
+
+# 2. Design Goals
+
+The Tunnel System SHALL provide:
+
+• Secure remote access
+• Provider independence
+• Automatic tunnel lifecycle
+• Fast reconnection
+• Minimal latency overhead
+• Health monitoring
+• Automatic recovery
+• Connection diagnostics
+• Provider failover
+• Zero manual networking where practical
+
+--------------------------------------------------------------------
+
+# 3. Non Goals
+
+The Tunnel System SHALL NOT:
+
+Replace WorkspaceOS security
+
+Replace authentication
+
+Expose unrestricted APIs
+
+Open arbitrary ports
+
+Modify firewall rules without consent
+
+Require cloud execution
+
+Become dependent on any single provider
+
+--------------------------------------------------------------------
+
+# 4. Architecture
+
+Desktop
+
+↓
+
+Tunnel Manager
+
+↓
+
+Tunnel Provider
+
+↓
+
+Secure Internet Connection
+
+↓
+
+Remote AI
+
+↓
+
+WorkspaceOS MCP
+
+Tunnel providers SHALL act only as transport mechanisms.
+
+Authentication SHALL remain entirely inside WorkspaceOS.
+
+--------------------------------------------------------------------
+
+# 5. Tunnel Providers
+
+WorkspaceOS SHALL support multiple providers.
+
+Examples:
+
+Cloudflare Tunnel
+
+ngrok
+
+Tailscale Funnel
+
+Self-hosted Reverse Proxy
+
+Future providers
+
+Each provider SHALL implement the same provider interface.
+
+--------------------------------------------------------------------
+
+# 6. Provider Interface
+
+Every tunnel provider SHALL implement:
+
+Initialize()
+
+Connect()
+
+Disconnect()
+
+Reconnect()
+
+GetStatus()
+
+GetPublicURL()
+
+Health()
+
+Shutdown()
+
+Capability declarations SHALL also be supported.
+
+--------------------------------------------------------------------
+
+# 7. Provider Selection
+
+Users SHALL select:
+
+Automatic
+
+or
+
+Manual
+
+Automatic mode SHALL choose the preferred provider according to:
+
+Availability
+
+Latency
+
+Health
+
+Configuration
+
+Manual selection SHALL always override automatic selection.
+
+--------------------------------------------------------------------
+
+# 8. Tunnel Lifecycle
+
+Disabled
+
+↓
+
+Configured
+
+↓
+
+Initializing
+
+↓
+
+Authenticating
+
+↓
+
+Connecting
+
+↓
+
+Connected
+
+↓
+
+Monitoring
+
+↓
+
+Disconnected
+
+↓
+
+Reconnecting
+
+↓
+
+Connected
+
+Shutdown SHALL gracefully terminate active sessions.
+
+--------------------------------------------------------------------
+
+# 9. Automatic Tunnel Management
+
+WorkspaceOS SHOULD support automatic tunnel startup.
+
+Example workflow:
+
+Desktop Launch
+
+↓
+
+Workspace Loaded
+
+↓
+
+Tunnel Enabled?
+
+↓
+
+Yes
+
+↓
+
+Provider Launch
+
+↓
+
+Connection
+
+↓
+
+Publish URL
+
+↓
+
+Ready
+
+The user SHOULD NOT be required to manually start a second application.
+
+--------------------------------------------------------------------
+
+# 10. ngrok Integration
+
+WorkspaceOS MAY manage ngrok automatically.
+
+Responsibilities include:
+
+Launching process
+
+Monitoring process
+
+Obtaining public URL
+
+Stopping process
+
+Restarting process
+
+Configuration SHALL remain inside WorkspaceOS.
+
+Users SHOULD NOT manually copy URLs.
+
+--------------------------------------------------------------------
+
+# 11. Cloudflare Tunnel
+
+If Cloudflare Tunnel is configured:
+
+WorkspaceOS SHALL manage:
+
+Startup
+
+Authentication
+
+Connection
+
+Monitoring
+
+Recovery
+
+WorkspaceOS SHALL not require users to interact directly with the
+Cloudflare CLI after initial configuration.
+
+--------------------------------------------------------------------
+
+# 12. Tailscale Support
+
+Where available:
+
+WorkspaceOS MAY integrate with Tailscale.
+
+Capabilities include:
+
+Secure mesh networking
+
+Private connectivity
+
+Optional Funnel support
+
+Identity-aware networking
+
+--------------------------------------------------------------------
+
+# 13. Public URL Management
+
+The Tunnel Manager SHALL expose:
+
+Current URL
+
+Provider
+
+Connection State
+
+Latency
+
+Health
+
+Expiration (if applicable)
+
+Reconnect Count
+
+The Desktop application SHALL always display the active endpoint.
+
+--------------------------------------------------------------------
+
+# 14. Authentication
+
+Tunnel providers SHALL NEVER authenticate WorkspaceOS users.
+
+Authentication SHALL always occur through the WorkspaceOS Security
+Engine.
+
+Tunnel providers SHALL only transport encrypted traffic.
+
+--------------------------------------------------------------------
+
+# 15. Connection Health
+
+WorkspaceOS SHALL monitor:
+
+Latency
+
+Packet loss
+
+Reconnect count
+
+Connection uptime
+
+Heartbeat failures
+
+Health SHALL be visible in the dashboard.
+
+--------------------------------------------------------------------
+
+# 16. Automatic Recovery
+
+Examples:
+
+Tunnel process crash
+
+↓
+
+Restart
+
+Provider unavailable
+
+↓
+
+Switch Provider (optional)
+
+Network interruption
+
+↓
+
+Reconnect
+
+Expired session
+
+↓
+
+Reauthenticate
+
+Recovery SHALL occur without requiring application restart whenever
+possible.
+
+--------------------------------------------------------------------
+
+# 17. Provider Failover
+
+Optional automatic failover MAY be enabled.
+
+Example:
+
+Cloudflare unavailable
+
+↓
+
+Attempt ngrok
+
+↓
+
+Unavailable
+
+↓
+
+Attempt Tailscale
+
+↓
+
+Unavailable
+
+↓
+
+Remain Local
+
+Failover SHALL preserve WorkspaceOS security policies.
+
+--------------------------------------------------------------------
+
+# 18. Security Rules
+
+Every remote request SHALL still execute:
+
+Authentication
+
+↓
+
+Authorization
+
+↓
+
+Workspace Validation
+
+↓
+
+Capability Evaluation
+
+↓
+
+Execution
+
+↓
+
+Audit Logging
+
+Tunnel providers SHALL never bypass this pipeline.
+
+--------------------------------------------------------------------
+
+# 19. Performance Goals
+
+Tunnel startup
+
+Target
+
+< 3 seconds
+
+Reconnect
+
+Target
+
+< 5 seconds
+
+Heartbeat overhead
+
+Minimal
+
+Idle CPU
+
+Near zero
+
+The transport layer SHALL introduce as little latency as practical.
+
+--------------------------------------------------------------------
+
+# 20. Configuration
+
+Tunnel configuration SHALL support:
+
+Provider
+
+Auto Start
+
+Reconnect
+
+Timeout
+
+Heartbeat
+
+Authentication
+
+Public URL behavior
+
+Logging
+
+Debug Mode
+
+Workspace Restrictions
+
+Configuration SHALL remain independent of provider implementation.
+
+--------------------------------------------------------------------
+
+# 21. Diagnostics
+
+The Tunnel Manager SHALL expose:
+
+Connection State
+
+Provider
+
+Public URL
+
+Latency
+
+Reconnect Count
+
+Last Error
+
+Last Successful Connection
+
+Heartbeat Status
+
+Traffic Statistics
+
+Certificate Status (where applicable)
+
+--------------------------------------------------------------------
+
+# 22. Mermaid Diagram
+
+```mermaid
+
+flowchart TD
+
+Desktop --> TunnelManager
+
+TunnelManager --> Cloudflare
+
+TunnelManager --> ngrok
+
+TunnelManager --> Tailscale
+
+Cloudflare --> Internet
+
+ngrok --> Internet
+
+Tailscale --> Internet
+
+Internet --> AI
+
+AI --> MCP
+
+MCP --> WorkspaceOS
+
+````
+
+---
+
+# 23. Future Expansion
+
+Future providers MAY include:
+
+Enterprise Reverse Proxy
+
+WireGuard Gateway
+
+WorkspaceOS Cloud Relay
+
+Peer-to-Peer Networking
+
+Regional Edge Gateways
+
+Provider additions SHALL require only implementation of the provider
+interface.
+
+---
+
+# 24. Exit Criteria
+
+The Tunnel System is considered complete when:
+
+• Remote access is optional.
+• Multiple providers are supported.
+• Provider management is automatic.
+• Users are not required to manually manage tunnel processes during
+normal operation.
+• Remote traffic remains subject to the complete WorkspaceOS security
+pipeline.
+• Failures recover automatically where possible.
+• The transport layer remains provider-independent, secure, observable,
+and performant.
+
+====================================================================
+END OF DOCUMENT
+===============
+
+```
+```
