@@ -49,8 +49,25 @@ impl IgnoreMatcher {
 
         if let Some(ref gitignore) = self.gitignore {
             if let Ok(relative) = path.strip_prefix(&self.root) {
+                let relative_unix = relative.to_string_lossy().replace('\\', "/");
                 let is_dir = path.is_dir();
-                return gitignore.matched(relative, is_dir).is_ignore();
+                if gitignore.matched(&relative_unix, is_dir).is_ignore() {
+                    return true;
+                }
+
+                // Match parents recursively as directories
+                let mut current = relative.parent();
+                while let Some(parent) = current {
+                    let parent_str = parent.to_string_lossy();
+                    if parent_str.is_empty() || parent_str == "." {
+                        break;
+                    }
+                    let parent_unix = parent_str.replace('\\', "/");
+                    if gitignore.matched(&parent_unix, true).is_ignore() {
+                        return true;
+                    }
+                    current = parent.parent();
+                }
             }
         }
 

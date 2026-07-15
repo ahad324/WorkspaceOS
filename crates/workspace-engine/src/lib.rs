@@ -263,6 +263,9 @@ impl WorkspaceRegistry {
         let id = Uuid::new_v4().to_string();
         let ws = Workspace::new(id, name, root_canonical);
 
+        ws.set_state(WorkspaceState::Initializing)?;
+        ws.set_state(WorkspaceState::Ready)?;
+
         // Write default configuration file (.workspaceos.toml) to workspace root if missing
         let config_file = ws.metadata.root.join(".workspaceos.toml");
         if !config_file.exists() {
@@ -364,7 +367,7 @@ mod tests {
     fn setup_temp_workspace() -> PathBuf {
         let path = std::env::temp_dir().join(format!("workspaceos_test_{}", Uuid::new_v4()));
         std::fs::create_dir_all(&path).unwrap();
-        path
+        path.canonicalize().unwrap()
     }
 
     #[test]
@@ -395,7 +398,8 @@ mod tests {
             root.clone(),
         );
 
-        // File inside workspace
+        // File inside workspace (must create parent directory so canonicalize works)
+        std::fs::create_dir_all(root.join("src")).unwrap();
         let inside = ws.resolve_path("src/lib.rs").unwrap();
         assert!(inside.starts_with(&root));
 
@@ -426,6 +430,11 @@ mod tests {
         // Create a custom gitignore
         let gitignore_path = root.join(".gitignore");
         std::fs::write(&gitignore_path, "*.log\nbuild/").unwrap();
+
+        // Create directories for test matching
+        std::fs::create_dir_all(root.join("build")).unwrap();
+        std::fs::write(root.join("build").join("output.txt"), "hello").unwrap();
+        std::fs::create_dir_all(root.join("src")).unwrap();
 
         // Refresh matcher
         let matcher_custom = IgnoreMatcher::new(&root);
