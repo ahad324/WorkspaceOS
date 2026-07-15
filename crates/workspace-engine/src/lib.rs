@@ -1,7 +1,10 @@
 pub mod config;
+pub mod event_bus;
+pub mod ignore;
 pub mod state;
+pub mod watcher;
 
-use parking_lot::RwLock;
+use parking_lot::{Mutex, RwLock};
 use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
 use std::io::{self, Write};
@@ -11,7 +14,10 @@ use tracing::{info, warn};
 use uuid::Uuid;
 
 pub use config::WorkspaceConfig;
+pub use event_bus::{FsEvent, WorkspaceEvent, WorkspaceEventBus};
+pub use ignore::IgnoreMatcher;
 pub use state::WorkspaceState;
+pub use watcher::WorkspaceWatcher;
 
 #[derive(Debug, thiserror::Error)]
 pub enum WorkspaceError {
@@ -146,6 +152,8 @@ pub struct WorkspaceRegistry {
     registry_path: PathBuf,
     workspaces: RwLock<Vec<Workspace>>,
     active_id: RwLock<Option<String>>,
+    pub event_bus: Arc<WorkspaceEventBus>,
+    active_watcher: Arc<Mutex<Option<WorkspaceWatcher>>>,
 }
 
 impl Default for WorkspaceRegistry {
@@ -168,6 +176,8 @@ impl WorkspaceRegistry {
             registry_path,
             workspaces: RwLock::new(Vec::new()),
             active_id: RwLock::new(None),
+            event_bus: Arc::new(WorkspaceEventBus::new()),
+            active_watcher: Arc::new(Mutex::new(None)),
         };
 
         if let Err(e) = reg.load_registry() {
@@ -268,6 +278,11 @@ impl WorkspaceRegistry {
         drop(workspaces_guard);
 
         self.save_registry()?;
+        self.event_bus.publish(WorkspaceEvent::WorkspaceCreated {
+            id: ws.metadata.id.clone(),
+            name: ws.metadata.name.clone(),
+            root: ws.metadata.root.clone(),
+        });
         info!(
             "Workspace registered successfully: {} at {:?}",
             ws.metadata.name, ws.metadata.root
@@ -278,10 +293,14 @@ impl WorkspaceRegistry {
 
     pub fn activate_workspace(&self, id: &str) -> Result<(), WorkspaceError> {
         let workspaces_guard = self.workspaces.read();
-        let exists = workspaces_guard.iter().any(|w| w.metadata.id == id);
-        if !exists {
-            return Err(WorkspaceError::NotFound(id.to_string()));
-        }
+        let active_ws = workspaces_guard
+            .iter()
+            .find(|w| w.metadata.id == id)
+            .cloned();
+        let active_ws = match active_ws {
+            Some(w) => w,
+            None => return Err(WorkspaceError::NotFound(id.to_string())),
+        };
 
         // Set all workspaces state to Ready, except the active one
         for ws in workspaces_guard.iter() {
@@ -293,11 +312,28 @@ impl WorkspaceRegistry {
         }
         drop(workspaces_guard);
 
+        // Stop active watcher if present
+        let mut watcher_guard = self.active_watcher.lock();
+        if let Some(old_watcher) = watcher_guard.take() {
+            old_watcher.stop();
+        }
+
+        // Spawn new watcher
+        let new_watcher = WorkspaceWatcher::new(
+            &active_ws.metadata.id,
+            active_ws.metadata.root.clone(),
+            Arc::clone(&self.event_bus),
+        )?;
+        *watcher_guard = Some(new_watcher);
+        drop(watcher_guard);
+
         let mut active_id_guard = self.active_id.write();
         *active_id_guard = Some(id.to_string());
         drop(active_id_guard);
 
         self.save_registry()?;
+        self.event_bus
+            .publish(WorkspaceEvent::WorkspaceActivated { id: id.to_string() });
         info!("Workspace activated: {}", id);
         Ok(())
     }
@@ -371,6 +407,87 @@ mod tests {
         assert!(ws.resolve_path("src/../../outside.txt").is_err());
 
         // Clean up temp dir
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn test_ignore_matcher() {
+        let root = setup_temp_workspace();
+
+        // Create an ignore matcher
+        let matcher = IgnoreMatcher::new(&root);
+
+        // Check hardcoded rules
+        assert!(matcher.is_ignored(&root.join(".git").join("config")));
+        assert!(matcher.is_ignored(&root.join("node_modules").join("package.json")));
+        assert!(matcher.is_ignored(&root.join("target").join("debug").join("binary")));
+        assert!(!matcher.is_ignored(&root.join("src").join("lib.rs")));
+
+        // Create a custom gitignore
+        let gitignore_path = root.join(".gitignore");
+        std::fs::write(&gitignore_path, "*.log\nbuild/").unwrap();
+
+        // Refresh matcher
+        let matcher_custom = IgnoreMatcher::new(&root);
+        assert!(matcher_custom.is_ignored(&root.join("error.log")));
+        assert!(matcher_custom.is_ignored(&root.join("build").join("output.txt")));
+        assert!(!matcher_custom.is_ignored(&root.join("src").join("error.log.rs")));
+
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn test_watcher_events() {
+        let root = setup_temp_workspace();
+
+        // We need a test registry with temp path
+        let test_registry_path = root.join("registry.json");
+        let registry = WorkspaceRegistry {
+            registry_path: test_registry_path,
+            workspaces: RwLock::new(Vec::new()),
+            active_id: RwLock::new(None),
+            event_bus: Arc::new(WorkspaceEventBus::new()),
+            active_watcher: Arc::new(Mutex::new(None)),
+        };
+
+        // Register and activate
+        let ws = registry
+            .register_workspace("Test".to_string(), root.clone())
+            .unwrap();
+        registry.activate_workspace(&ws.metadata.id).unwrap();
+
+        // Subscribe to event bus
+        let mut rx = registry.event_bus.subscribe();
+
+        // Create a file to trigger the watcher
+        let test_file = root.join("test_file.txt");
+        std::fs::write(&test_file, "hello").unwrap();
+
+        // Wait up to 2 seconds for the debounced event
+        let start = std::time::Instant::now();
+        let mut received = false;
+
+        while start.elapsed() < std::time::Duration::from_secs(2) {
+            if let Ok(WorkspaceEvent::FsUpdate {
+                id,
+                event: FsEvent::Created(path),
+            }) = rx.try_recv()
+            {
+                assert_eq!(id, ws.metadata.id);
+                assert_eq!(path, Path::new("test_file.txt"));
+                received = true;
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(50));
+        }
+
+        assert!(received, "Did not receive debounced FsUpdate event");
+
+        // Clean up watcher to release locks
+        if let Some(watcher) = registry.active_watcher.lock().take() {
+            watcher.stop();
+        }
+        std::thread::sleep(std::time::Duration::from_millis(150));
         let _ = std::fs::remove_dir_all(&root);
     }
 }
