@@ -4,8 +4,8 @@ export interface Workspace {
   id: string;
   name: string;
   root: string;
-  indexed: boolean;
-  capabilities: string[];
+  created_at: number;
+  last_modified: number;
 }
 
 export interface LogEntry {
