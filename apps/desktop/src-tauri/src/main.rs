@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::path::PathBuf;
-use workspace_engine::{WorkspaceRegistry, WorkspaceMetadata};
+use workspace_engine::{WorkspaceMetadata, WorkspaceRegistry};
 
 struct AppState {
     registry: WorkspaceRegistry,

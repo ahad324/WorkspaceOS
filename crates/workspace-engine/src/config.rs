@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct WorkspaceConfig {
@@ -30,10 +30,7 @@ pub struct SecurityConfig {
 }
 
 fn default_allowed_capabilities() -> Vec<String> {
-    vec![
-        "filesystem.read".to_string(),
-        "git.read".to_string(),
-    ]
+    vec!["filesystem.read".to_string(), "git.read".to_string()]
 }
 
 impl Default for SecurityConfig {
@@ -61,4 +58,3 @@ impl Default for PerformanceConfig {
         }
     }
 }
-

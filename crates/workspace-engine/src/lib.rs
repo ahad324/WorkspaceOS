@@ -1,14 +1,14 @@
 pub mod config;
 pub mod state;
 
-use std::path::{Path, PathBuf};
+use parking_lot::RwLock;
+use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
 use std::io::{self, Write};
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use serde::{Serialize, Deserialize};
-use parking_lot::RwLock;
-use uuid::Uuid;
 use tracing::{info, warn};
+use uuid::Uuid;
 
 pub use config::WorkspaceConfig;
 pub use state::WorkspaceState;
@@ -78,18 +78,23 @@ impl Workspace {
         // Handle absolute path inputs - reject immediately
         let raw_path = Path::new(relative_path);
         if raw_path.is_absolute() {
-            return Err(WorkspaceError::InvalidPath("Absolute paths are not allowed".to_string()));
+            return Err(WorkspaceError::InvalidPath(
+                "Absolute paths are not allowed".to_string(),
+            ));
         }
 
         let joined_path = self.metadata.root.join(relative_path);
-        
+
         let path_canonical = match joined_path.canonicalize() {
             Ok(p) => p,
             Err(e) if e.kind() == io::ErrorKind::NotFound => {
                 // If it is a new file that does not exist, resolve parent directory
                 if let Some(parent) = joined_path.parent() {
                     let parent_canonical = parent.canonicalize().map_err(|err| {
-                        WorkspaceError::InvalidPath(format!("Parent directory does not exist or cannot be canonicalized: {}", err))
+                        WorkspaceError::InvalidPath(format!(
+                            "Parent directory does not exist or cannot be canonicalized: {}",
+                            err
+                        ))
                     })?;
                     if let Some(filename) = joined_path.file_name() {
                         parent_canonical.join(filename)
@@ -97,7 +102,10 @@ impl Workspace {
                         return Err(WorkspaceError::InvalidPath("Invalid file name".to_string()));
                     }
                 } else {
-                    return Err(WorkspaceError::InvalidPath(format!("Path cannot be resolved: {}", e)));
+                    return Err(WorkspaceError::InvalidPath(format!(
+                        "Path cannot be resolved: {}",
+                        e
+                    )));
                 }
             }
             Err(e) => return Err(WorkspaceError::IO(e)),
@@ -115,9 +123,9 @@ impl Workspace {
 
     pub fn set_state(&self, new_state: WorkspaceState) -> Result<(), WorkspaceError> {
         let mut state_guard = self.state.write();
-        let updated_state = state_guard.transition_to(new_state).map_err(|e| {
-            WorkspaceError::IllegalStateTransition(e)
-        })?;
+        let updated_state = state_guard
+            .transition_to(new_state)
+            .map_err(WorkspaceError::IllegalStateTransition)?;
         *state_guard = updated_state;
         Ok(())
     }
@@ -151,7 +159,7 @@ impl WorkspaceRegistry {
         let home = std::env::var("USERPROFILE")
             .or_else(|_| std::env::var("HOME"))
             .unwrap_or_else(|_| ".".to_string());
-        
+
         let registry_path = PathBuf::from(home)
             .join(".workspaceos")
             .join("registry.json");
@@ -163,7 +171,10 @@ impl WorkspaceRegistry {
         };
 
         if let Err(e) = reg.load_registry() {
-            warn!("Could not load workspace registry: {}. Initializing empty registry.", e);
+            warn!(
+                "Could not load workspace registry: {}. Initializing empty registry.",
+                e
+            );
         }
 
         reg
@@ -205,7 +216,10 @@ impl WorkspaceRegistry {
         let active_id_guard = self.active_id.read();
 
         let data = RegistryData {
-            workspaces: workspaces_guard.iter().map(|w| w.metadata.clone()).collect(),
+            workspaces: workspaces_guard
+                .iter()
+                .map(|w| w.metadata.clone())
+                .collect(),
             active_id: active_id_guard.clone(),
         };
 
@@ -217,7 +231,11 @@ impl WorkspaceRegistry {
         Ok(())
     }
 
-    pub fn register_workspace(&self, name: String, root: PathBuf) -> Result<Workspace, WorkspaceError> {
+    pub fn register_workspace(
+        &self,
+        name: String,
+        root: PathBuf,
+    ) -> Result<Workspace, WorkspaceError> {
         let root_canonical = root.canonicalize().map_err(|e| {
             WorkspaceError::InvalidPath(format!("Failed to resolve workspace path: {}", e))
         })?;
@@ -225,14 +243,16 @@ impl WorkspaceRegistry {
         let workspaces_guard = self.workspaces.read();
         for ws in workspaces_guard.iter() {
             if ws.metadata.root == root_canonical {
-                return Err(WorkspaceError::DuplicateWorkspace(root_canonical.to_string_lossy().into_owned()));
+                return Err(WorkspaceError::DuplicateWorkspace(
+                    root_canonical.to_string_lossy().into_owned(),
+                ));
             }
         }
         drop(workspaces_guard);
 
         let id = Uuid::new_v4().to_string();
         let ws = Workspace::new(id, name, root_canonical);
-        
+
         // Write default configuration file (.workspaceos.toml) to workspace root if missing
         let config_file = ws.metadata.root.join(".workspaceos.toml");
         if !config_file.exists() {
@@ -248,7 +268,10 @@ impl WorkspaceRegistry {
         drop(workspaces_guard);
 
         self.save_registry()?;
-        info!("Workspace registered successfully: {} at {:?}", ws.metadata.name, ws.metadata.root);
+        info!(
+            "Workspace registered successfully: {} at {:?}",
+            ws.metadata.name, ws.metadata.root
+        );
 
         Ok(ws)
     }
@@ -282,9 +305,12 @@ impl WorkspaceRegistry {
     pub fn get_active_workspace(&self) -> Option<Workspace> {
         let active_id_guard = self.active_id.read();
         let workspaces_guard = self.workspaces.read();
-        
+
         if let Some(ref id) = *active_id_guard {
-            workspaces_guard.iter().find(|w| w.metadata.id == *id).cloned()
+            workspaces_guard
+                .iter()
+                .find(|w| w.metadata.id == *id)
+                .cloned()
         } else {
             None
         }
@@ -308,12 +334,12 @@ mod tests {
     #[test]
     fn test_state_transitions() {
         let ws = Workspace::new(
-            "test-id".to_string(), 
-            "Test Workspace".to_string(), 
-            PathBuf::from(".")
+            "test-id".to_string(),
+            "Test Workspace".to_string(),
+            PathBuf::from("."),
         );
         assert_eq!(ws.get_state(), WorkspaceState::Created);
-        
+
         assert!(ws.set_state(WorkspaceState::Initializing).is_ok());
         assert_eq!(ws.get_state(), WorkspaceState::Initializing);
 
@@ -328,9 +354,9 @@ mod tests {
     fn test_path_resolution_and_containment() {
         let root = setup_temp_workspace();
         let ws = Workspace::new(
-            "test-id".to_string(), 
-            "Test Workspace".to_string(), 
-            root.clone()
+            "test-id".to_string(),
+            "Test Workspace".to_string(),
+            root.clone(),
         );
 
         // File inside workspace

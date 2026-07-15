@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum WorkspaceState {
@@ -18,34 +18,34 @@ impl WorkspaceState {
         match (self, target) {
             // Self-loop is always allowed
             (a, b) if a == b => true,
-            
+
             // Core transitions
             (WorkspaceState::Created, WorkspaceState::Initializing) => true,
             (WorkspaceState::Initializing, WorkspaceState::Ready) => true,
             (WorkspaceState::Initializing, WorkspaceState::Error) => true,
-            
+
             (WorkspaceState::Ready, WorkspaceState::Active) => true,
             (WorkspaceState::Ready, WorkspaceState::Stopped) => true,
-            
+
             (WorkspaceState::Active, WorkspaceState::Indexing) => true,
             (WorkspaceState::Active, WorkspaceState::Paused) => true,
             (WorkspaceState::Active, WorkspaceState::Error) => true,
             (WorkspaceState::Active, WorkspaceState::Stopped) => true,
-            
+
             (WorkspaceState::Indexing, WorkspaceState::Active) => true,
             (WorkspaceState::Indexing, WorkspaceState::Error) => true,
-            
+
             (WorkspaceState::Paused, WorkspaceState::Active) => true,
             (WorkspaceState::Paused, WorkspaceState::Stopped) => true,
-            
+
             (WorkspaceState::Error, WorkspaceState::Recovering) => true,
             (WorkspaceState::Error, WorkspaceState::Stopped) => true,
-            
+
             (WorkspaceState::Recovering, WorkspaceState::Active) => true,
             (WorkspaceState::Recovering, WorkspaceState::Error) => true,
-            
+
             (WorkspaceState::Stopped, WorkspaceState::Initializing) => true,
-            
+
             _ => false,
         }
     }

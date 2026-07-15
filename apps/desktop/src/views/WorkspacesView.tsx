@@ -10,11 +10,11 @@ interface WorkspacesViewProps {
   onActivate: (id: string) => Promise<void>;
 }
 
-export default function WorkspacesView({ 
-  workspaces, 
-  activeWorkspace, 
-  onRegister, 
-  onActivate 
+export default function WorkspacesView({
+  workspaces,
+  activeWorkspace,
+  onRegister,
+  onActivate,
 }: WorkspacesViewProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [name, setName] = useState('');
@@ -34,9 +34,11 @@ export default function WorkspacesView({
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">Workspaces</h2>
-          <p className="text-sm text-text-secondary">Register and configure local code directories.</p>
+          <p className="text-sm text-text-secondary">
+            Register and configure local code directories.
+          </p>
         </div>
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
           className="bg-accent-primary hover:bg-accent-hover text-white text-xs font-semibold py-2 px-4 rounded-lg flex items-center space-x-1.5 transition duration-150"
         >
@@ -69,7 +71,9 @@ export default function WorkspacesView({
                   <tr key={ws.id} className={isActive ? 'bg-surface-secondary/20' : ''}>
                     <td className="px-6 py-4 font-semibold text-text-primary flex items-center space-x-2">
                       <span>{ws.name}</span>
-                      {isActive && <span className="w-1.5 h-1.5 rounded-full bg-success-main animate-pulse" />}
+                      {isActive && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-success-main animate-pulse" />
+                      )}
                     </td>
                     <td className="px-6 py-4 font-mono text-xs text-text-secondary truncate max-w-[300px]">
                       {ws.root}
@@ -88,7 +92,7 @@ export default function WorkspacesView({
                     </td>
                     <td className="px-6 py-4 text-right">
                       {!isActive && (
-                        <button 
+                        <button
                           onClick={() => onActivate(ws.id)}
                           className="text-xs text-accent-primary hover:text-accent-hover font-semibold transition duration-150"
                         >
@@ -108,7 +112,7 @@ export default function WorkspacesView({
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
@@ -121,7 +125,7 @@ export default function WorkspacesView({
                   <FolderOpen className="w-4 h-4 text-accent-primary" />
                   <h3 className="font-semibold text-text-primary">Register Workspace</h3>
                 </div>
-                <button 
+                <button
                   onClick={() => setIsModalOpen(false)}
                   className="p-1 rounded-lg hover:bg-surface-secondary text-text-muted hover:text-text-primary transition"
                 >
@@ -132,7 +136,10 @@ export default function WorkspacesView({
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label htmlFor="ws-name" className="block text-xs font-semibold text-text-secondary mb-1.5">
+                  <label
+                    htmlFor="ws-name"
+                    className="block text-xs font-semibold text-text-secondary mb-1.5"
+                  >
                     Workspace Name
                   </label>
                   <input
@@ -147,7 +154,10 @@ export default function WorkspacesView({
                 </div>
 
                 <div>
-                  <label htmlFor="ws-path" className="block text-xs font-semibold text-text-secondary mb-1.5">
+                  <label
+                    htmlFor="ws-path"
+                    className="block text-xs font-semibold text-text-secondary mb-1.5"
+                  >
                     Absolute Path
                   </label>
                   <input
