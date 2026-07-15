@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-tauri = { version = "2.2.0" }
+tauri = { version = "2.2.0", features = [] }
 tauri-build = { version = "2.2.0" }
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -21,4 +21,4 @@ tunnel-manager = { path = "../../../crates/tunnel-manager" }
 plugin-system = { path = "../../../crates/plugin-system" }
 
 [build-dependencies]
-tauri-build = { version = "2.2.0" }
+tauri-build = { version = "2.2.0", features = [] }
