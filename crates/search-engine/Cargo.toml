@@ -9,3 +9,6 @@ tracing = { workspace = true }
 rusqlite = { workspace = true }
 tantivy = { workspace = true }
 workspace-engine = { path = "../workspace-engine" }
+index-engine = { path = "../index-engine" }
+tokio = { workspace = true }
+uuid = { version = "1.12.1", features = ["v4"] }

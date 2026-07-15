@@ -103,3 +103,69 @@ fn traverse_nodes(node: Node, code: &str, language: &str, symbols: &mut Vec<Pars
         }
     }
 }
+
+pub fn extract_imports(language: &str, code: &str) -> Vec<String> {
+    let mut parser = Parser::new();
+    let lang = match language {
+        "rust" => tree_sitter_rust::language(),
+        "typescript" | "tsx" | "javascript" => tree_sitter_typescript::language_typescript(),
+        _ => return Vec::new(),
+    };
+
+    if parser.set_language(&lang).is_err() {
+        return Vec::new();
+    }
+
+    let tree = match parser.parse(code, None) {
+        Some(t) => t,
+        None => return Vec::new(),
+    };
+
+    let mut imports = Vec::new();
+    traverse_imports(tree.root_node(), code, language, &mut imports);
+    imports
+}
+
+fn traverse_imports(node: Node, code: &str, language: &str, imports: &mut Vec<String>) {
+    let node_type = node.kind();
+    match (language, node_type) {
+        ("rust", "use_declaration") => {
+            let range = node.range();
+            let mut text = code[range.start_byte..range.end_byte].trim().to_string();
+            if text.starts_with("use ") {
+                text = text["use ".len()..].to_string();
+            }
+            if text.ends_with(';') {
+                text.pop();
+            }
+            let cleaned = text.trim().to_string();
+            if !cleaned.is_empty() {
+                imports.push(cleaned);
+            }
+        }
+        (_, "import_statement") => {
+            let source_node = node.child_by_field_name("source");
+            if let Some(s_node) = source_node {
+                let range = s_node.range();
+                let text = code[range.start_byte..range.end_byte].trim().to_string();
+                let cleaned = text
+                    .trim_matches(|c| c == '\'' || c == '"' || c == '`')
+                    .to_string();
+                if !cleaned.is_empty() {
+                    imports.push(cleaned);
+                }
+            }
+        }
+        _ => {}
+    }
+
+    let mut cursor = node.walk();
+    if cursor.goto_first_child() {
+        loop {
+            traverse_imports(cursor.node(), code, language, imports);
+            if !cursor.goto_next_sibling() {
+                break;
+            }
+        }
+    }
+}

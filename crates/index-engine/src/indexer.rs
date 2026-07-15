@@ -1,5 +1,5 @@
 use crate::db::{IndexDb, SymbolRecord};
-use crate::parser::extract_symbols;
+use crate::parser::{extract_imports, extract_symbols};
 use blake3::Hasher;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -84,13 +84,14 @@ impl WorkspaceIndexer {
             .delete_symbols_for_file(file_id)
             .map_err(|e| e.to_string())?;
 
-        // Extract and insert symbols for supported languages
+        // Extract and insert symbols/dependencies for supported languages
         if language == "rust"
             || language == "typescript"
             || language == "tsx"
             || language == "javascript"
         {
             if let Ok(code) = fs::read_to_string(&full_path) {
+                // Symbols
                 let symbols = extract_symbols(&language, &code);
                 for sym in symbols {
                     let record = SymbolRecord {
@@ -107,10 +108,73 @@ impl WorkspaceIndexer {
                         warn!("Failed to insert symbol into SQLite: {}", e);
                     }
                 }
+
+                // Dependencies
+                let _ = self.db.delete_dependencies_for_file(file_id);
+                let imports = extract_imports(&language, &code);
+                for raw_imp in imports {
+                    if let Some(target_rel) = self.resolve_dependency_path(relative_path, &raw_imp)
+                    {
+                        let target_id = match self.db.get_file(&target_rel) {
+                            Ok(Some(existing)) => existing.id,
+                            _ => {
+                                let target_lang = Self::detect_language(Path::new(&target_rel));
+                                self.db
+                                    .insert_file(&target_rel, 0, 0, "", &target_lang)
+                                    .unwrap_or(0)
+                            }
+                        };
+                        if target_id > 0 {
+                            let _ = self.db.insert_dependency(file_id, target_id, "import");
+                        }
+                    }
+                }
             }
         }
 
         Ok(())
+    }
+
+    fn resolve_dependency_path(&self, source_rel: &str, import_raw: &str) -> Option<String> {
+        if import_raw.starts_with('.') {
+            // Relative import (TypeScript / JavaScript)
+            let source_full = self.root.join(source_rel);
+            let parent = source_full.parent()?;
+            let resolved_full = parent.join(import_raw);
+
+            // Try standard extensions
+            for ext in &["ts", "tsx", "js", "jsx"] {
+                let with_ext = resolved_full.with_extension(*ext);
+                if with_ext.exists() {
+                    if let Ok(rel) = with_ext.strip_prefix(&self.root) {
+                        return Some(rel.to_string_lossy().replace('\\', "/"));
+                    }
+                }
+            }
+            // Try directory index files
+            for ext in &["ts", "tsx", "js", "jsx"] {
+                let index_path = resolved_full.join(format!("index.{}", ext));
+                if index_path.exists() {
+                    if let Ok(rel) = index_path.strip_prefix(&self.root) {
+                        return Some(rel.to_string_lossy().replace('\\', "/"));
+                    }
+                }
+            }
+        } else {
+            // Rust-style import path like `crate::db`
+            let rust_relative = import_raw.replace("crate::", "").replace("::", "/") + ".rs";
+            let file_candidates = vec![
+                Path::new("src").join(&rust_relative),
+                Path::new("src").join("components").join(&rust_relative),
+            ];
+            for cand in file_candidates {
+                let full_cand = self.root.join(&cand);
+                if full_cand.exists() {
+                    return Some(cand.to_string_lossy().replace('\\', "/"));
+                }
+            }
+        }
+        None
     }
 
     pub fn delete_file(&self, relative_path: &str) -> Result<(), String> {

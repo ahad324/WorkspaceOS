@@ -4,7 +4,7 @@ pub mod parser;
 
 pub use db::{FileRecord, IndexDb, SymbolRecord};
 pub use indexer::WorkspaceIndexer;
-pub use parser::{extract_symbols, ParsedSymbol};
+pub use parser::{extract_imports, extract_symbols, ParsedSymbol};
 
 #[cfg(test)]
 mod tests {
@@ -151,6 +151,23 @@ mod tests {
         assert!(symbols_mod
             .iter()
             .any(|s| s.name == "stop" && s.kind == "function"));
+
+        // Test dependency extraction
+        let other_file = src_dir.join("helper.ts");
+        std::fs::write(&other_file, "export class Helper {}").unwrap();
+        indexer.index_file("src/helper.ts").unwrap();
+
+        let main_file = src_dir.join("main.ts");
+        std::fs::write(&main_file, "import { Helper } from './helper';").unwrap();
+        indexer.index_file("src/main.ts").unwrap();
+
+        let main_rec = indexer.db.get_file("src/main.ts").unwrap().unwrap();
+        let other_rec = indexer.db.get_file("src/helper.ts").unwrap().unwrap();
+
+        let deps = indexer.db.get_dependencies_for_file(main_rec.id).unwrap();
+        assert_eq!(deps.len(), 1);
+        assert_eq!(deps[0].0, other_rec.id);
+        assert_eq!(deps[0].1, "import");
 
         // Clean up
         let _ = std::fs::remove_dir_all(&root);

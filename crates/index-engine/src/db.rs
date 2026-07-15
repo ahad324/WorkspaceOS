@@ -78,6 +78,18 @@ impl IndexDb {
             [],
         )?;
 
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS dependencies (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                source_file_id INTEGER NOT NULL,
+                target_file_id INTEGER NOT NULL,
+                kind TEXT NOT NULL,
+                FOREIGN KEY(source_file_id) REFERENCES files(id) ON DELETE CASCADE,
+                FOREIGN KEY(target_file_id) REFERENCES files(id) ON DELETE CASCADE
+            );",
+            [],
+        )?;
+
         // Create performance-critical indexes
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_symbols_file_id ON symbols(file_id);",
@@ -85,6 +97,14 @@ impl IndexDb {
         )?;
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_symbols_name ON symbols(name);",
+            [],
+        )?;
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_dependencies_source ON dependencies(source_file_id);",
+            [],
+        )?;
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_dependencies_target ON dependencies(target_file_id);",
             [],
         )?;
 
@@ -206,6 +226,45 @@ impl IndexDb {
                 hash: row.get(4)?,
                 language: row.get(5)?,
             });
+        }
+        Ok(list)
+    }
+
+    pub fn insert_dependency(
+        &self,
+        source_file_id: i64,
+        target_file_id: i64,
+        kind: &str,
+    ) -> Result<i64> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute(
+            "INSERT INTO dependencies (source_file_id, target_file_id, kind)
+             VALUES (?1, ?2, ?3);",
+            params![source_file_id, target_file_id, kind],
+        )?;
+        Ok(conn.last_insert_rowid())
+    }
+
+    pub fn delete_dependencies_for_file(&self, source_file_id: i64) -> Result<()> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute(
+            "DELETE FROM dependencies WHERE source_file_id = ?1;",
+            params![source_file_id],
+        )?;
+        Ok(())
+    }
+
+    pub fn get_dependencies_for_file(&self, source_file_id: i64) -> Result<Vec<(i64, String)>> {
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = conn
+            .prepare("SELECT target_file_id, kind FROM dependencies WHERE source_file_id = ?1;")?;
+        let mut rows = stmt.query(params![source_file_id])?;
+
+        let mut list = Vec::new();
+        while let Some(row) = rows.next()? {
+            let target_id: i64 = row.get(0)?;
+            let kind: String = row.get(1)?;
+            list.push((target_id, kind));
         }
         Ok(list)
     }
