@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { 
-  LayoutDashboard, 
-  FolderGit2, 
-  Cpu, 
-  Settings as SettingsIcon, 
-  Terminal as TerminalIcon, 
-  Info, 
-  Activity, 
-  ShieldCheck, 
-  Network, 
+import {
+  LayoutDashboard,
+  FolderGit2,
+  Cpu,
+  Settings as SettingsIcon,
+  Terminal as TerminalIcon,
+  Info,
+  Activity,
+  ShieldCheck,
+  Network,
   Blocks,
   RefreshCw,
   LogOut,
@@ -16,7 +16,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Play,
-  Square
+  Square,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -62,19 +62,21 @@ export default function App() {
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
                   className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 relative ${
-                    isActive 
-                      ? 'text-text-primary font-medium bg-surface-secondary' 
+                    isActive
+                      ? 'text-text-primary font-medium bg-surface-secondary'
                       : 'text-text-secondary hover:text-text-primary hover:bg-surface-secondary/50'
                   }`}
                 >
                   {isActive && (
-                    <motion.div 
+                    <motion.div
                       layoutId="active-sidebar"
                       className="absolute left-0 w-1 h-5 rounded-r bg-accent-primary"
                       transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                     />
                   )}
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-accent-primary' : 'text-text-muted'}`} />
+                  <Icon
+                    className={`w-4 h-4 ${isActive ? 'text-accent-primary' : 'text-text-muted'}`}
+                  />
                   <span>{item.label}</span>
                 </button>
               );
@@ -87,7 +89,9 @@ export default function App() {
           <div className="flex items-center justify-between text-xs text-text-muted">
             <span>Status</span>
             <div className="flex items-center space-x-1.5">
-              <span className={`w-2 h-2 rounded-full ${isMcpRunning ? 'bg-success-main animate-pulse' : 'bg-danger-main'}`} />
+              <span
+                className={`w-2 h-2 rounded-full ${isMcpRunning ? 'bg-success-main animate-pulse' : 'bg-danger-main'}`}
+              />
               <span>{isMcpRunning ? 'Online' : 'Offline'}</span>
             </div>
           </div>
@@ -130,9 +134,13 @@ export default function App() {
               transition={{ duration: 0.15, ease: 'easeOut' }}
               className="h-full"
             >
-              {activeTab === 'dashboard' && <DashboardView isMcpRunning={isMcpRunning} setIsMcpRunning={setIsMcpRunning} />}
+              {activeTab === 'dashboard' && (
+                <DashboardView isMcpRunning={isMcpRunning} setIsMcpRunning={setIsMcpRunning} />
+              )}
               {activeTab === 'workspaces' && <WorkspacesView />}
-              {activeTab === 'mcp' && <McpView isMcpRunning={isMcpRunning} setIsMcpRunning={setIsMcpRunning} />}
+              {activeTab === 'mcp' && (
+                <McpView isMcpRunning={isMcpRunning} setIsMcpRunning={setIsMcpRunning} />
+              )}
               {activeTab === 'settings' && <SettingsView />}
               {activeTab === 'logs' && <LogsView />}
               {activeTab === 'about' && <AboutView />}
@@ -148,12 +156,20 @@ export default function App() {
 // SUB-VIEWS
 // -------------------------------------------------------------
 
-function DashboardView({ isMcpRunning, setIsMcpRunning }: { isMcpRunning: boolean, setIsMcpRunning: (v: boolean) => void }) {
+function DashboardView({
+  isMcpRunning,
+  setIsMcpRunning,
+}: {
+  isMcpRunning: boolean;
+  setIsMcpRunning: (v: boolean) => void;
+}) {
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">Welcome to WorkspaceOS</h2>
-        <p className="text-sm text-text-secondary">The secure operating layer between your AI models and development directories.</p>
+        <p className="text-sm text-text-secondary">
+          The secure operating layer between your AI models and development directories.
+        </p>
       </div>
 
       {/* Metrics Row */}
@@ -166,14 +182,19 @@ function DashboardView({ isMcpRunning, setIsMcpRunning }: { isMcpRunning: boolea
         ].map((stat, i) => {
           const Icon = stat.icon;
           return (
-            <div key={i} className="p-4 bg-surface-primary border border-border-subtle rounded-xl flex flex-col justify-between shadow-sm">
+            <div
+              key={i}
+              className="p-4 bg-surface-primary border border-border-subtle rounded-xl flex flex-col justify-between shadow-sm"
+            >
               <div className="flex items-center justify-between">
                 <span className="text-xs text-text-muted font-medium">{stat.label}</span>
                 <Icon className="w-4 h-4 text-text-muted" />
               </div>
               <div className="mt-2.5">
                 <span className="text-2xl font-bold tracking-tight">{stat.value}</span>
-                <span className="block text-[10px] text-success-main font-semibold mt-0.5">{stat.change}</span>
+                <span className="block text-[10px] text-success-main font-semibold mt-0.5">
+                  {stat.change}
+                </span>
               </div>
             </div>
           );
@@ -186,7 +207,9 @@ function DashboardView({ isMcpRunning, setIsMcpRunning }: { isMcpRunning: boolea
         <div className="md:col-span-1 p-5 bg-surface-primary border border-border-subtle rounded-xl flex flex-col justify-between shadow-sm">
           <div>
             <h3 className="text-base font-semibold mb-1">Runtime Status</h3>
-            <p className="text-xs text-text-muted mb-4">Manage the execution of the WorkspaceOS daemon.</p>
+            <p className="text-xs text-text-muted mb-4">
+              Manage the execution of the WorkspaceOS daemon.
+            </p>
 
             <div className="space-y-4">
               <div className="flex justify-between items-center bg-bg-app p-3 rounded-lg border border-border-subtle">
@@ -194,7 +217,9 @@ function DashboardView({ isMcpRunning, setIsMcpRunning }: { isMcpRunning: boolea
                   <span className="text-xs font-semibold text-text-primary">MCP Daemon</span>
                   <span className="text-[10px] text-text-muted">localhost:1420</span>
                 </div>
-                <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${isMcpRunning ? 'bg-success-main/10 text-success-main' : 'bg-text-muted/10 text-text-muted'}`}>
+                <span
+                  className={`px-2 py-0.5 text-[10px] font-bold rounded ${isMcpRunning ? 'bg-success-main/10 text-success-main' : 'bg-text-muted/10 text-text-muted'}`}
+                >
                   {isMcpRunning ? 'ACTIVE' : 'INACTIVE'}
                 </span>
               </div>
@@ -204,14 +229,16 @@ function DashboardView({ isMcpRunning, setIsMcpRunning }: { isMcpRunning: boolea
                   <span className="text-xs font-semibold text-text-primary">Tunnel Connection</span>
                   <span className="text-[10px] text-text-muted">Offline</span>
                 </div>
-                <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-text-muted/10 text-text-muted">DISABLED</span>
+                <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-text-muted/10 text-text-muted">
+                  DISABLED
+                </span>
               </div>
             </div>
           </div>
 
           <div className="pt-4 flex items-center space-x-2">
             {isMcpRunning ? (
-              <button 
+              <button
                 onClick={() => setIsMcpRunning(false)}
                 className="w-full flex items-center justify-center space-x-2 py-2 px-4 rounded-lg bg-danger-main/10 border border-danger-main/20 hover:bg-danger-main/20 text-danger-main text-xs font-medium transition duration-150"
               >
@@ -219,7 +246,7 @@ function DashboardView({ isMcpRunning, setIsMcpRunning }: { isMcpRunning: boolea
                 <span>Stop Runtime</span>
               </button>
             ) : (
-              <button 
+              <button
                 onClick={() => setIsMcpRunning(true)}
                 className="w-full flex items-center justify-center space-x-2 py-2 px-4 rounded-lg bg-accent-primary hover:bg-accent-hover text-white text-xs font-medium transition duration-150"
               >
@@ -234,12 +261,17 @@ function DashboardView({ isMcpRunning, setIsMcpRunning }: { isMcpRunning: boolea
         <div className="md:col-span-2 p-5 bg-surface-primary border border-border-subtle rounded-xl flex flex-col justify-between shadow-sm">
           <div>
             <h3 className="text-base font-semibold mb-1">Active Session Monitors</h3>
-            <p className="text-xs text-text-muted mb-4">No active client sessions found. Connect an AI agent using MCP to get started.</p>
+            <p className="text-xs text-text-muted mb-4">
+              No active client sessions found. Connect an AI agent using MCP to get started.
+            </p>
 
             <div className="border border-dashed border-border-subtle rounded-lg flex flex-col items-center justify-center py-10 text-center px-4">
               <Network className="w-8 h-8 text-text-muted mb-2.5" />
               <h4 className="text-xs font-semibold">Waiting for connection...</h4>
-              <p className="text-[10px] text-text-muted max-w-xs mt-1">Configure your client (like Claude Desktop or cursor-settings) to point to the local server endpoint.</p>
+              <p className="text-[10px] text-text-muted max-w-xs mt-1">
+                Configure your client (like Claude Desktop or cursor-settings) to point to the local
+                server endpoint.
+              </p>
             </div>
           </div>
         </div>
@@ -254,7 +286,9 @@ function WorkspacesView() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">Workspaces</h2>
-          <p className="text-sm text-text-secondary">Register and configure local code directories.</p>
+          <p className="text-sm text-text-secondary">
+            Register and configure local code directories.
+          </p>
         </div>
         <button className="bg-accent-primary hover:bg-accent-hover text-white text-xs font-semibold py-2 px-4 rounded-lg transition duration-150">
           Register Workspace
@@ -275,7 +309,9 @@ function WorkspacesView() {
           <tbody className="text-sm divide-y divide-border-subtle">
             <tr>
               <td className="px-6 py-4 font-semibold">WorkspaceOS (Current)</td>
-              <td className="px-6 py-4 font-mono text-xs text-text-muted">G:\Ahad\DesktopApps\WorkspaceOS</td>
+              <td className="px-6 py-4 font-mono text-xs text-text-muted">
+                G:\Ahad\DesktopApps\WorkspaceOS
+              </td>
               <td className="px-6 py-4">
                 <span className="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-success-main/10 text-success-main">
                   <CheckCircle2 className="w-3 h-3" />
@@ -284,7 +320,9 @@ function WorkspacesView() {
               </td>
               <td className="px-6 py-4 text-xs text-text-muted">All Allowed</td>
               <td className="px-6 py-4 text-right">
-                <button className="text-xs text-accent-primary hover:text-accent-hover font-semibold">Configure</button>
+                <button className="text-xs text-accent-primary hover:text-accent-hover font-semibold">
+                  Configure
+                </button>
               </td>
             </tr>
           </tbody>
@@ -294,33 +332,59 @@ function WorkspacesView() {
   );
 }
 
-function McpView({ isMcpRunning, setIsMcpRunning }: { isMcpRunning: boolean, setIsMcpRunning: (v: boolean) => void }) {
+function McpView({
+  isMcpRunning,
+  setIsMcpRunning,
+}: {
+  isMcpRunning: boolean;
+  setIsMcpRunning: (v: boolean) => void;
+}) {
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">MCP Server Configurations</h2>
-        <p className="text-sm text-text-secondary">Register and expose core capabilities to Model Context Protocol clients.</p>
+        <p className="text-sm text-text-secondary">
+          Register and expose core capabilities to Model Context Protocol clients.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
           <div className="p-5 bg-surface-primary border border-border-subtle rounded-xl shadow-sm space-y-4">
             <h3 className="text-base font-semibold">Registered Tools</h3>
-            <p className="text-xs text-text-muted">The following tools are compiled and ready to be exposed.</p>
+            <p className="text-xs text-text-muted">
+              The following tools are compiled and ready to be exposed.
+            </p>
 
             <div className="space-y-2">
               {[
-                { name: 'workspace_read_file', desc: 'Read code files from workspace root path with strict isolation.' },
+                {
+                  name: 'workspace_read_file',
+                  desc: 'Read code files from workspace root path with strict isolation.',
+                },
                 { name: 'workspace_write_file', desc: 'Write code files to workspace root path.' },
-                { name: 'workspace_search', desc: 'Query full-text indexed contents across repositories.' },
-                { name: 'workspace_get_symbols', desc: 'Retrieve AST parsed definitions from Tree-sitter.' },
+                {
+                  name: 'workspace_search',
+                  desc: 'Query full-text indexed contents across repositories.',
+                },
+                {
+                  name: 'workspace_get_symbols',
+                  desc: 'Retrieve AST parsed definitions from Tree-sitter.',
+                },
               ].map((tool, i) => (
-                <div key={i} className="flex justify-between items-start p-3 bg-bg-app rounded-lg border border-border-subtle">
+                <div
+                  key={i}
+                  className="flex justify-between items-start p-3 bg-bg-app rounded-lg border border-border-subtle"
+                >
                   <div>
-                    <span className="text-xs font-mono font-bold text-accent-primary">{tool.name}</span>
+                    <span className="text-xs font-mono font-bold text-accent-primary">
+                      {tool.name}
+                    </span>
                     <p className="text-[11px] text-text-muted mt-1">{tool.desc}</p>
                   </div>
-                  <span className="text-[10px] font-bold text-success-main px-1.5 py-0.5 rounded bg-success-main/10">READY</span>
+                  <span className="text-[10px] font-bold text-success-main px-1.5 py-0.5 rounded bg-success-main/10">
+                    READY
+                  </span>
                 </div>
               ))}
             </div>
@@ -330,10 +394,12 @@ function McpView({ isMcpRunning, setIsMcpRunning }: { isMcpRunning: boolean, set
         <div className="md:col-span-1 space-y-6">
           <div className="p-5 bg-surface-primary border border-border-subtle rounded-xl shadow-sm space-y-4">
             <h3 className="text-base font-semibold">Client Integration</h3>
-            <p className="text-xs text-text-muted">Add this configuration to your Claude Desktop config file to connect to WorkspaceOS:</p>
+            <p className="text-xs text-text-muted">
+              Add this configuration to your Claude Desktop config file to connect to WorkspaceOS:
+            </p>
 
             <pre className="p-3 bg-bg-app border border-border-subtle rounded-lg text-[10px] font-mono overflow-x-auto text-text-secondary select-all">
-{`{
+              {`{
   "mcpServers": {
     "workspace-os": {
       "command": "workspaceos-core",
@@ -354,12 +420,16 @@ function SettingsView() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">System Settings</h2>
-        <p className="text-sm text-text-secondary">Configure WorkspaceOS global constraints and profiles.</p>
+        <p className="text-sm text-text-secondary">
+          Configure WorkspaceOS global constraints and profiles.
+        </p>
       </div>
 
       <div className="bg-surface-primary border border-border-subtle rounded-xl p-6 max-w-2xl space-y-6 shadow-sm">
         <div className="space-y-4">
-          <h3 className="text-base font-semibold border-b border-border-subtle pb-2">Performance Profile</h3>
+          <h3 className="text-base font-semibold border-b border-border-subtle pb-2">
+            Performance Profile
+          </h3>
           <div className="grid grid-cols-4 gap-3">
             {['LOW', 'MID', 'HIGH', 'ULTRA'].map((profile) => (
               <button
@@ -383,13 +453,23 @@ function SettingsView() {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-semibold border-b border-border-subtle pb-2">Security Enforcement</h3>
+          <h3 className="text-base font-semibold border-b border-border-subtle pb-2">
+            Security Enforcement
+          </h3>
           <div className="flex items-center justify-between p-3 bg-bg-app rounded-lg border border-border-subtle">
             <div>
-              <span className="text-xs font-semibold text-text-primary">Confirm Dangerous Tools</span>
-              <p className="text-[10px] text-text-muted mt-0.5">Always prompt user confirmation before writing or modifying files.</p>
+              <span className="text-xs font-semibold text-text-primary">
+                Confirm Dangerous Tools
+              </span>
+              <p className="text-[10px] text-text-muted mt-0.5">
+                Always prompt user confirmation before writing or modifying files.
+              </p>
             </div>
-            <input type="checkbox" defaultChecked className="rounded border-border-subtle text-accent-primary focus:ring-accent-primary bg-surface-primary w-4 h-4" />
+            <input
+              type="checkbox"
+              defaultChecked
+              className="rounded border-border-subtle text-accent-primary focus:ring-accent-primary bg-surface-primary w-4 h-4"
+            />
           </div>
         </div>
       </div>
@@ -402,8 +482,16 @@ function LogsView() {
     { time: '23:55:04', level: 'INFO', msg: 'Initializing WorkspaceOS Core Runtime...' },
     { time: '23:55:04', level: 'INFO', msg: 'Loaded Workspace configuration file from TOML.' },
     { time: '23:55:04', level: 'INFO', msg: 'Successfully initialized SQLite connection pool.' },
-    { time: '23:55:05', level: 'INFO', msg: 'Started filesystem watcher on G:\\Ahad\\DesktopApps\\WorkspaceOS' },
-    { time: '23:55:05', level: 'INFO', msg: 'Repository Index Engine loaded. Verification: SUCCESS.' },
+    {
+      time: '23:55:05',
+      level: 'INFO',
+      msg: 'Started filesystem watcher on G:\\Ahad\\DesktopApps\\WorkspaceOS',
+    },
+    {
+      time: '23:55:05',
+      level: 'INFO',
+      msg: 'Repository Index Engine loaded. Verification: SUCCESS.',
+    },
     { time: '23:55:05', level: 'INFO', msg: 'Exposing MCP Tool registries on port 1420.' },
   ]);
 
@@ -412,7 +500,9 @@ function LogsView() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">Structured Log Viewer</h2>
-          <p className="text-sm text-text-secondary">Real-time system diagnostics and auditing logs.</p>
+          <p className="text-sm text-text-secondary">
+            Real-time system diagnostics and auditing logs.
+          </p>
         </div>
         <div className="flex space-x-2">
           <button className="py-1.5 px-3 rounded-lg border border-border-subtle text-xs text-text-secondary hover:bg-surface-secondary transition duration-150">
@@ -426,7 +516,10 @@ function LogsView() {
 
       <div className="flex-1 bg-surface-primary border border-border-subtle rounded-xl p-4 font-mono text-xs overflow-y-auto flex flex-col shadow-inner min-h-[300px]">
         {logs.map((log, i) => (
-          <div key={i} className="flex space-x-4 py-1 hover:bg-surface-secondary/40 px-2 rounded transition duration-100">
+          <div
+            key={i}
+            className="flex space-x-4 py-1 hover:bg-surface-secondary/40 px-2 rounded transition duration-100"
+          >
             <span className="text-text-muted">{log.time}</span>
             <span className="text-accent-primary font-bold">{log.level}</span>
             <span className="text-text-secondary">{log.msg}</span>
@@ -447,20 +540,30 @@ function AboutView() {
 
       <div className="bg-surface-primary border border-border-subtle rounded-xl p-6 space-y-6 shadow-sm">
         <div className="space-y-3">
-          <h3 className="text-base font-semibold border-b border-border-subtle pb-2">Architecture Model</h3>
+          <h3 className="text-base font-semibold border-b border-border-subtle pb-2">
+            Architecture Model
+          </h3>
           <p className="text-xs text-text-secondary leading-relaxed">
-            WorkspaceOS is a high-performance local runtime built from the ground up to securely connect LLMs with local development environments. By indexing files and symbol hierarchies using tree-sitter, WorkspaceOS builds a localized relational knowledge graph of code bases. It allows any MCP-compatible AI client to navigate repositories with contextual relevance without consuming excessive token budgets.
+            WorkspaceOS is a high-performance local runtime built from the ground up to securely
+            connect LLMs with local development environments. By indexing files and symbol
+            hierarchies using tree-sitter, WorkspaceOS builds a localized relational knowledge graph
+            of code bases. It allows any MCP-compatible AI client to navigate repositories with
+            contextual relevance without consuming excessive token budgets.
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-4 text-xs">
           <div className="p-3 bg-bg-app border border-border-subtle rounded-lg">
             <span className="text-text-muted block">Core Runtime</span>
-            <span className="font-semibold text-text-primary mt-1 block">Rust (Tokio Async, Axum)</span>
+            <span className="font-semibold text-text-primary mt-1 block">
+              Rust (Tokio Async, Axum)
+            </span>
           </div>
           <div className="p-3 bg-bg-app border border-border-subtle rounded-lg">
             <span className="text-text-muted block">Database Engine</span>
-            <span className="font-semibold text-text-primary mt-1 block">SQLite + Tantivy Hybrid Search</span>
+            <span className="font-semibold text-text-primary mt-1 block">
+              SQLite + Tantivy Hybrid Search
+            </span>
           </div>
         </div>
       </div>
