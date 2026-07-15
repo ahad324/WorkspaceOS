@@ -10,3 +10,7 @@ rusqlite = { workspace = true }
 tree-sitter = { workspace = true }
 blake3 = { workspace = true }
 workspace-engine = { path = "../workspace-engine" }
+tree-sitter-rust = "0.21.0"
+tree-sitter-typescript = "0.21.0"
+tokio = { workspace = true }
+uuid = { version = "1.12.1", features = ["v4"] }

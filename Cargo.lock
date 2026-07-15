@@ -1996,8 +1996,12 @@ dependencies = [
  "blake3",
  "rusqlite",
  "serde",
+ "tokio",
  "tracing",
  "tree-sitter",
+ "tree-sitter-rust",
+ "tree-sitter-typescript",
+ "uuid",
  "workspace-engine",
 ]
 
@@ -4830,6 +4834,26 @@ checksum = "df7cc499ceadd4dcdf7ec6d4cbc34ece92c3fa07821e287aedecd4416c516dca"
 dependencies = [
  "cc",
  "regex",
+]
+
+[[package]]
+name = "tree-sitter-rust"
+version = "0.21.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "277690f420bf90741dea984f3da038ace46c4fe6047cba57a66822226cde1c93"
+dependencies = [
+ "cc",
+ "tree-sitter",
+]
+
+[[package]]
+name = "tree-sitter-typescript"
+version = "0.21.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ecb35d98a688378e56c18c9c159824fd16f730ccbea19aacf4f206e5d5438ed9"
+dependencies = [
+ "cc",
+ "tree-sitter",
 ]
 
 [[package]]
