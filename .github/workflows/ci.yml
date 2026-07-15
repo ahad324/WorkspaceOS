@@ -37,7 +37,7 @@ jobs:
         run: cargo clippy --all-targets -- -D warnings
 
       - name: Run Tests
-        run: cargo test --all-workspace
+        run: cargo test --workspace
 
   web-check:
     name: Frontend Lint & Build
