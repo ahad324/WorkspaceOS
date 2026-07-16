@@ -1,0 +1,18 @@
+[package]
+name = "e2e-tests"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { version = "1.12.1", features = ["v4"] }
+workspace-engine = { path = "../workspace-engine" }
+search-engine = { path = "../search-engine" }
+index-engine = { path = "../index-engine" }
+context-engine = { path = "../context-engine" }
+security-engine = { path = "../security-engine" }
+mcp-runtime = { path = "../mcp-runtime" }
+tunnel-manager = { path = "../tunnel-manager" }
+plugin-system = { path = "../plugin-system" }

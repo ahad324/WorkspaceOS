@@ -49,6 +49,7 @@ export async function getActiveWorkspace(): Promise<Workspace | null> {
       last_modified: Date.now() / 1000,
     };
   }
+  return invoke<Workspace | null>('get_active_workspace');
 }
 
 export interface TunnelStatus {
