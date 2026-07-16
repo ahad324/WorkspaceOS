@@ -152,3 +152,45 @@ export async function generateContext(
   }
   return invoke<ContextProfile>('generate_context', { query, tokenBudget });
 }
+
+export interface WorkspaceConfig {
+  general: { name: string };
+  security: { allowed_capabilities: string[] };
+  performance: { profile: string };
+}
+
+export async function getWorkspaceConfig(): Promise<WorkspaceConfig> {
+  if (!isTauri) {
+    return {
+      general: { name: 'WorkspaceOS (Mock)' },
+      security: { allowed_capabilities: ['filesystem.read', 'git.read'] },
+      performance: { profile: 'HIGH' },
+    };
+  }
+  return invoke<WorkspaceConfig>('get_workspace_config');
+}
+
+export async function updateWorkspaceConfig(config: WorkspaceConfig): Promise<void> {
+  if (!isTauri) {
+    console.log('Mock saved config:', config);
+    return;
+  }
+  return invoke<void>('update_workspace_config', { config });
+}
+
+export async function pickDirectory(): Promise<string | null> {
+  if (!isTauri) {
+    return 'G:\\Ahad\\DesktopApps\\WorkspaceOS\\mock-folder';
+  }
+  return invoke<string | null>('pick_directory');
+}
+
+export async function getAuditLogs(): Promise<string[]> {
+  if (!isTauri) {
+    return [
+      '[1784147196] SUCCESS - Action: filesystem.read, Details: view_file src/lib.rs',
+      '[1784147198] SUCCESS - Action: filesystem.write, Details: write_to_file src/utils.py',
+    ];
+  }
+  return invoke<string[]>('get_audit_logs');
+}

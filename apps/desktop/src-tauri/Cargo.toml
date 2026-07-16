@@ -11,6 +11,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
+toml = "0.8.23"
 
 workspace-engine = { path = "../../../crates/workspace-engine" }
 security-engine = { path = "../../../crates/security-engine" }
@@ -20,6 +21,7 @@ mcp-runtime = { path = "../../../crates/mcp-runtime" }
 tunnel-manager = { path = "../../../crates/tunnel-manager" }
 plugin-system = { path = "../../../crates/plugin-system" }
 context-engine = { path = "../../../crates/context-engine" }
+rfd = "0.15.2"
 
 [build-dependencies]
 tauri-build = { version = "2.2.0", features = [] }

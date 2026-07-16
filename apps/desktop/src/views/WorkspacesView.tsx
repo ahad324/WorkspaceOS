@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CheckCircle2, Plus, X, FolderOpen } from 'lucide-react';
 import { Workspace } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
+import { pickDirectory } from '../services/tauriService';
 
 interface WorkspacesViewProps {
   workspaces: Workspace[];
@@ -29,6 +30,20 @@ export default function WorkspacesView({
     setIsModalOpen(false);
   };
 
+  const handleBrowse = async () => {
+    const selected = await pickDirectory();
+    if (selected) {
+      setPath(selected);
+      if (!name) {
+        const parts = selected.split(/[/\\]/);
+        const lastPart = parts[parts.length - 1];
+        if (lastPart) {
+          setName(lastPart);
+        }
+      }
+    }
+  };
+
   return (
     <div className="space-y-6 relative h-full">
       <div className="flex justify-between items-center">
@@ -40,7 +55,7 @@ export default function WorkspacesView({
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-accent-primary hover:bg-accent-hover text-white text-xs font-semibold py-2 px-4 rounded-lg flex items-center space-x-1.5 transition duration-150"
+          className="bg-accent-primary hover:bg-accent-hover text-white text-xs font-semibold py-2 px-4 rounded-lg flex items-center space-x-1.5 transition duration-150 cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Register Workspace</span>
@@ -94,7 +109,7 @@ export default function WorkspacesView({
                       {!isActive && (
                         <button
                           onClick={() => onActivate(ws.id)}
-                          className="text-xs text-accent-primary hover:text-accent-hover font-semibold transition duration-150"
+                          className="text-xs text-accent-primary hover:text-accent-hover font-semibold transition duration-150 cursor-pointer"
                         >
                           Activate
                         </button>
@@ -127,7 +142,7 @@ export default function WorkspacesView({
                 </div>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="p-1 rounded-lg hover:bg-surface-secondary text-text-muted hover:text-text-primary transition"
+                  className="p-1 rounded-lg hover:bg-surface-secondary text-text-muted hover:text-text-primary transition cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -160,28 +175,37 @@ export default function WorkspacesView({
                   >
                     Absolute Path
                   </label>
-                  <input
-                    id="ws-path"
-                    type="text"
-                    required
-                    value={path}
-                    onChange={(e) => setPath(e.target.value)}
-                    placeholder="e.g. C:\Projects\InventorySystem"
-                    className="w-full px-3 py-2 text-sm bg-bg-app border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-accent-primary focus:border-accent-primary text-text-primary font-mono text-xs"
-                  />
+                  <div className="flex space-x-2">
+                    <input
+                      id="ws-path"
+                      type="text"
+                      required
+                      value={path}
+                      onChange={(e) => setPath(e.target.value)}
+                      placeholder="e.g. C:\Projects\InventorySystem"
+                      className="flex-1 px-3 py-2 text-sm bg-bg-app border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-accent-primary focus:border-accent-primary text-text-primary font-mono text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleBrowse}
+                      className="px-3 py-2 bg-surface-secondary border border-border-subtle rounded-lg hover:bg-border-subtle text-text-primary text-xs font-medium transition cursor-pointer"
+                    >
+                      Browse...
+                    </button>
+                  </div>
                 </div>
 
                 <div className="pt-2 flex space-x-3">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="w-1/2 py-2 border border-border-subtle rounded-lg text-xs font-semibold text-text-secondary hover:bg-surface-secondary transition"
+                    className="w-1/2 py-2 border border-border-subtle rounded-lg text-xs font-semibold text-text-secondary hover:bg-surface-secondary transition cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="w-1/2 py-2 bg-accent-primary hover:bg-accent-hover text-white rounded-lg text-xs font-semibold transition"
+                    className="w-1/2 py-2 bg-accent-primary hover:bg-accent-hover text-white rounded-lg text-xs font-semibold transition cursor-pointer"
                   >
                     Register
                   </button>

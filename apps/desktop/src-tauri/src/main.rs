@@ -173,6 +173,69 @@ fn get_diagnostics() -> Result<workspace_engine::PerformanceDiagnostics, String>
     Ok(workspace_engine::PerformanceDiagnostics::collect_diagnostics())
 }
 
+#[tauri::command]
+fn get_workspace_config(
+    state: tauri::State<'_, AppState>,
+) -> Result<workspace_engine::WorkspaceConfig, String> {
+    let ws = state
+        .registry
+        .get_active_workspace()
+        .ok_or("No active workspace loaded")?;
+    let config_file = ws.metadata.root.join(".workspaceos.toml");
+    if config_file.exists() {
+        let content = std::fs::read_to_string(&config_file).map_err(|e| e.to_string())?;
+        let config: workspace_engine::WorkspaceConfig =
+            toml::from_str(&content).map_err(|e| e.to_string())?;
+        Ok(config)
+    } else {
+        Ok(ws.config)
+    }
+}
+
+#[tauri::command]
+fn update_workspace_config(
+    state: tauri::State<'_, AppState>,
+    config: workspace_engine::WorkspaceConfig,
+) -> Result<(), String> {
+    let ws = state
+        .registry
+        .get_active_workspace()
+        .ok_or("No active workspace loaded")?;
+    let config_file = ws.metadata.root.join(".workspaceos.toml");
+    let content = toml::to_string_pretty(&config).map_err(|e| e.to_string())?;
+    std::fs::write(&config_file, content).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+fn pick_directory() -> Result<Option<String>, String> {
+    let dir = rfd::FileDialog::new().pick_folder();
+    Ok(dir.map(|p| p.to_string_lossy().into_owned()))
+}
+
+#[tauri::command]
+fn get_audit_logs(state: tauri::State<'_, AppState>) -> Result<Vec<String>, String> {
+    let ws = state
+        .registry
+        .get_active_workspace()
+        .ok_or("No active workspace loaded")?;
+    let log_path = ws.metadata.root.join(".workspaceos").join("audit.log");
+    if log_path.exists() {
+        let content = std::fs::read_to_string(&log_path).map_err(|e| e.to_string())?;
+        let lines: Vec<String> = content
+            .lines()
+            .rev()
+            .take(100)
+            .map(|s| s.to_string())
+            .collect();
+        Ok(lines)
+    } else {
+        Ok(vec![
+            "[INFO] Audit log file is empty or does not exist yet.".to_string(),
+        ])
+    }
+}
+
 fn main() {
     let registry = WorkspaceRegistry::new();
     let indexer = Mutex::new(None);
@@ -226,7 +289,11 @@ fn main() {
             start_tunnel,
             stop_tunnel,
             list_plugins,
-            get_diagnostics
+            get_diagnostics,
+            get_workspace_config,
+            update_workspace_config,
+            pick_directory,
+            get_audit_logs
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
