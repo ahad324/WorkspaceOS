@@ -599,6 +599,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d52eff69cd5e647efe296129160853a42795992097e8af39800e1060caeea9b"
 
 [[package]]
+name = "context-engine"
+version = "0.1.0"
+dependencies = [
+ "index-engine",
+ "search-engine",
+ "serde",
+ "serde_json",
+ "tracing",
+ "uuid",
+ "workspace-engine",
+]
+
+[[package]]
 name = "cookie"
 version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2402,11 +2415,15 @@ name = "mcp-runtime"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "context-engine",
+ "index-engine",
+ "search-engine",
  "security-engine",
  "serde",
  "serde_json",
  "tokio",
  "tracing",
+ "uuid",
  "workspace-engine",
 ]
 
@@ -3551,6 +3568,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "tracing",
+ "uuid",
  "workspace-engine",
 ]
 

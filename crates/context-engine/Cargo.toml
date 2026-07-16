@@ -1,5 +1,5 @@
 [package]
-name = "mcp-runtime"
+name = "context-engine"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,11 +7,7 @@ edition = "2021"
 serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }
-axum = { workspace = true }
-tokio = { workspace = true }
 workspace-engine = { path = "../workspace-engine" }
-security-engine = { path = "../security-engine" }
 index-engine = { path = "../index-engine" }
 search-engine = { path = "../search-engine" }
-context-engine = { path = "../context-engine" }
 uuid = { version = "1.12.1", features = ["v4"] }
