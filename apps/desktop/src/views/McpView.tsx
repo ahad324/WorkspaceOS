@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { listPlugins, PluginMetadata } from '../services/tauriService';
-import { Compass } from 'lucide-react';
 import CopyButton from '../components/CopyButton';
 
 interface McpViewProps {
@@ -127,7 +126,7 @@ export default function McpView({ isMcpRunning, setIsMcpRunning }: McpViewProps)
 
           <div className="p-5 bg-surface-primary border border-border-subtle rounded-xl shadow-sm space-y-4">
             <h3 className="text-base font-semibold flex items-center space-x-2">
-              <Compass className="w-4 h-4 text-text-muted" />
+              <span className="material-symbols-rounded text-text-muted">explore</span>
               <span>Active Workspace Plugins</span>
             </h3>
             <p className="text-xs text-text-muted">

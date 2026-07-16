@@ -5,7 +5,7 @@ pub mod ignore;
 pub mod state;
 pub mod watcher;
 
-use parking_lot::{Mutex, RwLock};
+use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
 use std::io::{self, Write};
@@ -141,6 +141,27 @@ impl Workspace {
     pub fn get_state(&self) -> WorkspaceState {
         *self.state.read()
     }
+
+    pub fn read_config(&self) -> Result<WorkspaceConfig, WorkspaceError> {
+        let config_file = self.metadata.root.join(".workspaceos.toml");
+        if !config_file.exists() {
+            return Ok(WorkspaceConfig::default());
+        }
+        let content = fs::read_to_string(config_file)?;
+        let config: WorkspaceConfig = toml::from_str(&content).map_err(|e| {
+            WorkspaceError::ConfigError(format!("Failed to parse TOML config: {}", e))
+        })?;
+        Ok(config)
+    }
+
+    pub fn write_config(&self, config: &WorkspaceConfig) -> Result<(), WorkspaceError> {
+        let config_file = self.metadata.root.join(".workspaceos.toml");
+        let content = toml::to_string_pretty(config).map_err(|e| {
+            WorkspaceError::ConfigError(format!("Failed to serialize TOML config: {}", e))
+        })?;
+        fs::write(config_file, content)?;
+        Ok(())
+    }
 }
 
 // Global registry schema for persistence
@@ -148,14 +169,16 @@ impl Workspace {
 struct RegistryData {
     workspaces: Vec<WorkspaceMetadata>,
     active_id: Option<String>,
+    #[serde(default)]
+    active_ids: Vec<String>,
 }
 
 pub struct WorkspaceRegistry {
     registry_path: PathBuf,
     workspaces: RwLock<Vec<Workspace>>,
-    active_id: RwLock<Option<String>>,
+    active_ids: RwLock<Vec<String>>,
     pub event_bus: Arc<WorkspaceEventBus>,
-    active_watcher: Arc<Mutex<Option<WorkspaceWatcher>>>,
+    active_watchers: RwLock<std::collections::HashMap<String, WorkspaceWatcher>>,
 }
 
 impl Default for WorkspaceRegistry {
@@ -169,9 +192,9 @@ impl WorkspaceRegistry {
         let reg = Self {
             registry_path,
             workspaces: RwLock::new(Vec::new()),
-            active_id: RwLock::new(None),
+            active_ids: RwLock::new(Vec::new()),
             event_bus: Arc::new(WorkspaceEventBus::new()),
-            active_watcher: Arc::new(Mutex::new(None)),
+            active_watchers: RwLock::new(std::collections::HashMap::new()),
         };
 
         if let Err(e) = reg.load_registry() {
@@ -206,7 +229,7 @@ impl WorkspaceRegistry {
         })?;
 
         let mut workspaces_guard = self.workspaces.write();
-        let mut active_id_guard = self.active_id.write();
+        let mut active_ids_guard = self.active_ids.write();
 
         workspaces_guard.clear();
         for meta in data.workspaces {
@@ -218,7 +241,14 @@ impl WorkspaceRegistry {
             workspaces_guard.push(ws);
         }
 
-        *active_id_guard = data.active_id;
+        let mut active = data.active_ids;
+        if active.is_empty() {
+            if let Some(aid) = data.active_id {
+                active.push(aid);
+            }
+        }
+
+        *active_ids_guard = active;
         Ok(())
     }
 
@@ -228,14 +258,15 @@ impl WorkspaceRegistry {
         }
 
         let workspaces_guard = self.workspaces.read();
-        let active_id_guard = self.active_id.read();
+        let active_ids_guard = self.active_ids.read();
 
         let data = RegistryData {
             workspaces: workspaces_guard
                 .iter()
                 .map(|w| w.metadata.clone())
                 .collect(),
-            active_id: active_id_guard.clone(),
+            active_id: active_ids_guard.first().cloned(),
+            active_ids: active_ids_guard.clone(),
         };
 
         let file = File::create(&self.registry_path)?;
@@ -244,6 +275,25 @@ impl WorkspaceRegistry {
         })?;
 
         Ok(())
+    }
+
+    pub fn unregister_workspace(&self, id: &str) -> Result<(), WorkspaceError> {
+        let mut workspaces_guard = self.workspaces.write();
+        let mut active_ids_guard = self.active_ids.write();
+
+        workspaces_guard.retain(|w| w.metadata.id != id);
+        active_ids_guard.retain(|x| x != id);
+
+        let mut watchers_guard = self.active_watchers.write();
+        if let Some(watcher) = watchers_guard.remove(id) {
+            watcher.stop();
+        }
+
+        drop(workspaces_guard);
+        drop(active_ids_guard);
+        drop(watchers_guard);
+
+        self.save_registry()
     }
 
     pub fn register_workspace(
@@ -315,34 +365,28 @@ impl WorkspaceRegistry {
             None => return Err(WorkspaceError::NotFound(id.to_string())),
         };
 
-        // Set all workspaces state to Ready, except the active one
-        for ws in workspaces_guard.iter() {
-            if ws.metadata.id == id {
-                ws.set_state(WorkspaceState::Active)?;
-            } else if ws.get_state() == WorkspaceState::Active {
-                ws.set_state(WorkspaceState::Ready)?;
-            }
-        }
+        // Transition workspace to Active state
+        active_ws.set_state(WorkspaceState::Active)?;
         drop(workspaces_guard);
 
-        // Stop active watcher if present
-        let mut watcher_guard = self.active_watcher.lock();
-        if let Some(old_watcher) = watcher_guard.take() {
-            old_watcher.stop();
+        // Check if already active
+        let mut active_ids_guard = self.active_ids.write();
+        if !active_ids_guard.contains(&id.to_string()) {
+            active_ids_guard.push(id.to_string());
         }
+        drop(active_ids_guard);
 
-        // Spawn new watcher
-        let new_watcher = WorkspaceWatcher::new(
-            &active_ws.metadata.id,
-            active_ws.metadata.root.clone(),
-            Arc::clone(&self.event_bus),
-        )?;
-        *watcher_guard = Some(new_watcher);
-        drop(watcher_guard);
-
-        let mut active_id_guard = self.active_id.write();
-        *active_id_guard = Some(id.to_string());
-        drop(active_id_guard);
+        // Start watcher for this workspace if not already watching
+        let mut watchers_guard = self.active_watchers.write();
+        if !watchers_guard.contains_key(id) {
+            let watcher = WorkspaceWatcher::new(
+                id,
+                active_ws.metadata.root.clone(),
+                Arc::clone(&self.event_bus),
+            )?;
+            watchers_guard.insert(id.to_string(), watcher);
+        }
+        drop(watchers_guard);
 
         self.save_registry()?;
         self.event_bus
@@ -351,25 +395,52 @@ impl WorkspaceRegistry {
         Ok(())
     }
 
+    pub fn deactivate_workspace(&self, id: &str) -> Result<(), WorkspaceError> {
+        let workspaces_guard = self.workspaces.read();
+        let active_ws = workspaces_guard
+            .iter()
+            .find(|w| w.metadata.id == id)
+            .cloned();
+        if let Some(ws) = active_ws {
+            ws.set_state(WorkspaceState::Ready)?;
+        }
+        drop(workspaces_guard);
+
+        let mut active_ids_guard = self.active_ids.write();
+        active_ids_guard.retain(|x| x != id);
+        drop(active_ids_guard);
+
+        let mut watchers_guard = self.active_watchers.write();
+        if let Some(watcher) = watchers_guard.remove(id) {
+            watcher.stop();
+        }
+        drop(watchers_guard);
+
+        self.save_registry()?;
+        info!("Workspace deactivated: {}", id);
+        Ok(())
+    }
+
     pub fn shutdown(&self) {
-        let mut watcher_guard = self.active_watcher.lock();
-        if let Some(watcher) = watcher_guard.take() {
+        let mut watchers_guard = self.active_watchers.write();
+        for (_, watcher) in watchers_guard.drain() {
             watcher.stop();
         }
     }
 
-    pub fn get_active_workspace(&self) -> Option<Workspace> {
-        let active_id_guard = self.active_id.read();
+    pub fn get_active_workspaces(&self) -> Vec<Workspace> {
+        let active_ids_guard = self.active_ids.read();
         let workspaces_guard = self.workspaces.read();
 
-        if let Some(ref id) = *active_id_guard {
-            workspaces_guard
-                .iter()
-                .find(|w| w.metadata.id == *id)
-                .cloned()
-        } else {
-            None
-        }
+        workspaces_guard
+            .iter()
+            .filter(|w| active_ids_guard.contains(&w.metadata.id))
+            .cloned()
+            .collect()
+    }
+
+    pub fn get_active_workspace(&self) -> Option<Workspace> {
+        self.get_active_workspaces().first().cloned()
     }
 
     pub fn list_workspaces(&self) -> Vec<Workspace> {
@@ -471,9 +542,9 @@ mod tests {
         let registry = WorkspaceRegistry {
             registry_path: test_registry_path,
             workspaces: RwLock::new(Vec::new()),
-            active_id: RwLock::new(None),
+            active_ids: RwLock::new(Vec::new()),
             event_bus: Arc::new(WorkspaceEventBus::new()),
-            active_watcher: Arc::new(Mutex::new(None)),
+            active_watchers: RwLock::new(std::collections::HashMap::new()),
         };
 
         // Register and activate
@@ -510,9 +581,7 @@ mod tests {
         assert!(received, "Did not receive debounced FsUpdate event");
 
         // Clean up watcher to release locks
-        if let Some(watcher) = registry.active_watcher.lock().take() {
-            watcher.stop();
-        }
+        registry.shutdown();
         std::thread::sleep(std::time::Duration::from_millis(150));
         let _ = std::fs::remove_dir_all(&root);
     }

@@ -11,13 +11,14 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@material/web": "^2.4.1",
     "@tauri-apps/api": "^2.2.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
     "lucide-react": "^0.475.0",
     "motion": "^12.4.0",
-    "zod": "^3.24.1",
-    "react-hook-form": "^7.54.2"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.54.2",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",

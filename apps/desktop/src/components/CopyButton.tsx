@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Copy, Check } from 'lucide-react';
 
 interface CopyButtonProps {
   value: string;
@@ -25,9 +24,11 @@ export default function CopyButton({ value }: CopyButtonProps) {
       title="Copy to clipboard"
     >
       {copied ? (
-        <Check className="w-3.5 h-3.5 text-success-main animate-bounce" />
+        <span className="material-symbols-rounded text-success-main text-sm animate-bounce">
+          check
+        </span>
       ) : (
-        <Copy className="w-3.5 h-3.5" />
+        <span className="material-symbols-rounded text-sm">content_copy</span>
       )}
     </button>
   );

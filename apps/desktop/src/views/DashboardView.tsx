@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { FolderGit2, Cpu, Activity, ShieldCheck, Network, Play, Square, Globe } from 'lucide-react';
+import { useState, useEffect, CSSProperties } from 'react';
 import { Workspace } from '../types';
 import {
   getDiagnostics,
@@ -26,6 +25,9 @@ export default function DashboardView({
   const [isTunnelLoading, setIsTunnelLoading] = useState(false);
   const [provider, setProvider] = useState('Cloudflare');
   const [authToken, setAuthToken] = useState('');
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [tokenError, setTokenError] = useState<string | null>(null);
+  const [isProviderDropdownOpen, setIsProviderDropdownOpen] = useState(false);
 
   useEffect(() => {
     // Initial fetch
@@ -39,18 +41,38 @@ export default function DashboardView({
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    setValidationError(null);
+    setTokenError(null);
+  }, [provider, authToken]);
+
   const handleTunnelToggle = async () => {
+    setValidationError(null);
+    setTokenError(null);
+
+    if (!tunnelUrl) {
+      if (provider === 'ngrok' && !authToken.trim()) {
+        setTokenError('Authentication token is required to initialize an ngrok tunnel.');
+        return;
+      }
+      if (provider === 'Cloudflare' && !authToken.trim()) {
+        setTokenError('Access token is required to initialize a Cloudflare tunnel.');
+        return;
+      }
+    }
+
     setIsTunnelLoading(true);
     try {
       if (tunnelUrl) {
         await stopTunnel();
         setTunnelUrl(null);
       } else {
-        const url = await startTunnel(provider, authToken);
+        const url = await startTunnel(provider, authToken.trim());
         setTunnelUrl(url);
       }
     } catch (e) {
       console.error(e);
+      setValidationError(e instanceof Error ? e.message : String(e));
     } finally {
       setIsTunnelLoading(false);
     }
@@ -65,7 +87,7 @@ export default function DashboardView({
       label: 'Active Workspace',
       value: activeWorkspace ? activeWorkspace.name : 'None',
       change: activeWorkspace ? 'Isolated Boundary' : 'Offline',
-      icon: FolderGit2,
+      iconName: 'folder_open',
     },
     {
       label: 'Indexed Documents',
@@ -73,19 +95,19 @@ export default function DashboardView({
       change: diagnostics
         ? `Cache: ${(diagnostics.sqlite_cache_hit_ratio * 100).toFixed(0)}% hit`
         : 'Idle',
-      icon: Cpu,
+      iconName: 'dns',
     },
     {
       label: 'Memory Footprint',
       value: diagnostics ? formatBytes(diagnostics.memory_rss_bytes) : '0 MB',
       change: 'Daemon RSS',
-      icon: Activity,
+      iconName: 'memory',
     },
     {
       label: 'CPU Usage',
       value: diagnostics ? `${(diagnostics.cpu_usage_percent * 100).toFixed(2)}%` : '0.00%',
       change: 'Minimal Overhead',
-      icon: ShieldCheck,
+      iconName: 'shield',
     },
   ];
 
@@ -105,7 +127,6 @@ export default function DashboardView({
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {stats.map((stat, i) => {
-          const Icon = stat.icon;
           return (
             <div
               key={i}
@@ -113,7 +134,7 @@ export default function DashboardView({
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs text-text-muted font-medium">{stat.label}</span>
-                <Icon className="w-4 h-4 text-text-muted" />
+                <span className="material-symbols-rounded text-text-muted">{stat.iconName}</span>
               </div>
               <div className="mt-2.5">
                 <span className="text-xl font-bold tracking-tight truncate block">
@@ -171,17 +192,59 @@ export default function DashboardView({
               {/* Tunnel Configuration Inputs */}
               {!tunnelUrl && (
                 <>
-                  <div className="flex flex-col space-y-1.5 bg-bg-app p-3 rounded-lg border border-border-subtle">
+                  <div className="flex flex-col space-y-1.5 bg-bg-app p-3 rounded-lg border border-border-subtle relative">
                     <label className="text-[10px] font-bold text-text-muted">TUNNEL PROVIDER</label>
-                    <select
-                      value={provider}
-                      onChange={(e) => setProvider(e.target.value)}
-                      className="bg-surface-primary border border-border-subtle rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
-                    >
-                      <option value="Cloudflare">Cloudflare Tunnel</option>
-                      <option value="ngrok">ngrok Tunnel</option>
-                      <option value="Tailscale">Tailscale Funnel</option>
-                    </select>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setIsProviderDropdownOpen(!isProviderDropdownOpen)}
+                        className="w-full flex items-center justify-between bg-surface-primary border border-border-subtle rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none cursor-pointer"
+                      >
+                        <span>
+                          {provider === 'Cloudflare'
+                            ? 'Cloudflare Tunnel'
+                            : provider === 'ngrok'
+                              ? 'ngrok Tunnel'
+                              : 'Tailscale Funnel'}
+                        </span>
+                        <span className="material-symbols-rounded text-text-muted text-sm">
+                          arrow_drop_down
+                        </span>
+                      </button>
+
+                      {isProviderDropdownOpen && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-10"
+                            onClick={() => setIsProviderDropdownOpen(false)}
+                          />
+                          <div className="absolute left-0 right-0 mt-1 bg-surface-primary border border-border-subtle rounded-lg shadow-lg z-20 py-1 overflow-hidden">
+                            {[
+                              { id: 'Cloudflare', name: 'Cloudflare Tunnel' },
+                              { id: 'ngrok', name: 'ngrok Tunnel' },
+                              { id: 'Tailscale', name: 'Tailscale Funnel' },
+                            ].map((opt) => (
+                              <button
+                                key={opt.id}
+                                type="button"
+                                onClick={() => {
+                                  setProvider(opt.id);
+                                  setIsProviderDropdownOpen(false);
+                                }}
+                                className="w-full flex items-center justify-between px-3 py-2 text-xs text-text-primary hover:bg-surface-secondary text-left cursor-pointer"
+                              >
+                                <span>{opt.name}</span>
+                                {provider === opt.id && (
+                                  <span className="material-symbols-rounded text-accent-primary text-sm">
+                                    check
+                                  </span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex flex-col space-y-1.5 bg-bg-app p-3 rounded-lg border border-border-subtle">
@@ -193,8 +256,11 @@ export default function DashboardView({
                       placeholder="Paste tunnel token..."
                       value={authToken}
                       onChange={(e) => setAuthToken(e.target.value)}
-                      className="bg-surface-primary border border-border-subtle rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none placeholder-text-muted"
+                      className={`bg-surface-primary border rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none placeholder-text-muted transition duration-150 ${tokenError ? 'border-danger-main focus:ring-danger-main focus:border-danger-main' : 'border-border-subtle focus:ring-accent-primary focus:border-accent-primary'}`}
                     />
+                    {tokenError && (
+                      <p className="text-[9px] text-danger-main font-medium mt-0.5">{tokenError}</p>
+                    )}
                   </div>
                 </>
               )}
@@ -218,13 +284,19 @@ export default function DashboardView({
             </div>
           </div>
 
+          {validationError && (
+            <div className="p-2.5 bg-danger-main/10 border border-danger-main/20 text-danger-main rounded-lg text-[10px] font-medium leading-normal">
+              {validationError}
+            </div>
+          )}
+
           <div className="pt-2 space-y-2">
             {isMcpRunning ? (
               <button
                 onClick={() => setIsMcpRunning(false)}
                 className="w-full flex items-center justify-center space-x-2 py-2 px-4 rounded-lg bg-danger-main/10 border border-danger-main/20 hover:bg-danger-main/20 text-danger-main text-xs font-medium transition duration-150 cursor-pointer"
               >
-                <Square className="w-3.5 h-3.5" />
+                <span className="material-symbols-rounded text-sm">stop</span>
                 <span>Stop MCP Daemon</span>
               </button>
             ) : (
@@ -232,7 +304,7 @@ export default function DashboardView({
                 onClick={() => setIsMcpRunning(true)}
                 className="w-full flex items-center justify-center space-x-2 py-2 px-4 rounded-lg bg-accent-primary hover:bg-accent-hover text-white text-xs font-medium transition duration-150 cursor-pointer"
               >
-                <Play className="w-3.5 h-3.5" />
+                <span className="material-symbols-rounded text-sm">play_arrow</span>
                 <span>Start MCP Daemon</span>
               </button>
             )}
@@ -246,7 +318,14 @@ export default function DashboardView({
                   : 'bg-accent-primary hover:bg-accent-hover text-white'
               } ${isTunnelLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              <Globe className="w-3.5 h-3.5" />
+              {isTunnelLoading ? (
+                <md-circular-progress
+                  indeterminate
+                  style={{ '--md-circular-progress-size': '16px' } as CSSProperties}
+                ></md-circular-progress>
+              ) : (
+                <span className="material-symbols-rounded text-sm">public</span>
+              )}
               <span>
                 {isTunnelLoading
                   ? 'Connecting...'
@@ -269,7 +348,9 @@ export default function DashboardView({
             </p>
 
             <div className="border border-dashed border-border-subtle rounded-lg flex flex-col items-center justify-center py-10 text-center px-4">
-              <Network className="w-8 h-8 text-text-muted mb-2.5" />
+              <span className="material-symbols-rounded text-text-muted text-4xl mb-2.5">
+                settings_ethernet
+              </span>
               <h4 className="text-xs font-semibold">
                 {tunnelUrl
                   ? `${provider} Tunnel Active`

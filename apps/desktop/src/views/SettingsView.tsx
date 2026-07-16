@@ -4,7 +4,6 @@ import {
   updateWorkspaceConfig,
   WorkspaceConfig,
 } from '../services/tauriService';
-import { Shield, Cpu, FolderOpen } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function SettingsView() {
@@ -77,7 +76,9 @@ export default function SettingsView() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[300px] text-center px-4 space-y-4">
         <div className="p-6 bg-surface-primary border border-border-subtle rounded-2xl max-w-sm shadow-md space-y-3">
-          <Shield className="w-8 h-8 text-accent-primary mx-auto animate-pulse" />
+          <span className="material-symbols-rounded text-accent-primary text-4xl mx-auto block animate-pulse">
+            shield
+          </span>
           <h4 className="text-sm font-semibold text-text-primary">No Active Workspace Bounded</h4>
           <p className="text-xs text-text-muted leading-relaxed">
             WorkspaceOS settings are bound to active projects. Please register and activate a
@@ -117,7 +118,7 @@ export default function SettingsView() {
         {/* Name input */}
         <div className="space-y-3">
           <h3 className="text-base font-semibold border-b border-border-subtle pb-2 flex items-center space-x-2">
-            <FolderOpen className="w-4 h-4 text-text-muted" />
+            <span className="material-symbols-rounded text-text-muted">folder</span>
             <span>Workspace Profile</span>
           </h3>
           <div className="flex flex-col space-y-1.5">
@@ -134,7 +135,7 @@ export default function SettingsView() {
         {/* Profile profile selector */}
         <div className="space-y-4">
           <h3 className="text-base font-semibold border-b border-border-subtle pb-2 flex items-center space-x-2">
-            <Cpu className="w-4 h-4 text-text-muted" />
+            <span className="material-symbols-rounded text-text-muted">memory</span>
             <span>Performance Profile</span>
           </h3>
           <div className="grid grid-cols-4 gap-3">
@@ -163,7 +164,7 @@ export default function SettingsView() {
         {/* Security permissions config */}
         <div className="space-y-4">
           <h3 className="text-base font-semibold border-b border-border-subtle pb-2 flex items-center space-x-2">
-            <Shield className="w-4 h-4 text-text-muted" />
+            <span className="material-symbols-rounded text-text-muted">shield</span>
             <span>Security Enforcement</span>
           </h3>
 
@@ -177,12 +178,11 @@ export default function SettingsView() {
                   <span className="text-xs font-semibold text-text-primary">{cap.label}</span>
                   <p className="text-[10px] text-text-muted mt-0.5">{cap.desc}</p>
                 </div>
-                <input
-                  type="checkbox"
+                <md-checkbox
                   checked={config.security.allowed_capabilities.includes(cap.id)}
-                  onChange={() => handleCapabilityToggle(cap.id)}
-                  className="rounded border-border-subtle text-accent-primary focus:ring-accent-primary bg-surface-primary w-4 h-4 cursor-pointer"
-                />
+                  onClick={() => handleCapabilityToggle(cap.id)}
+                  style={{ cursor: 'pointer' }}
+                ></md-checkbox>
               </div>
             ))}
           </div>

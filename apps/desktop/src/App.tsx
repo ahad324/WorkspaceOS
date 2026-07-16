@@ -11,23 +11,26 @@ import { Tab, Workspace } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   getWorkspaces,
-  getActiveWorkspace,
+  getActiveWorkspaces,
   registerWorkspace,
   activateWorkspace,
+  deactivateWorkspace,
+  unregisterWorkspace,
 } from './services/tauriService';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [isMcpRunning, setIsMcpRunning] = useState(true);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [activeWorkspace, setActiveWorkspace] = useState<Workspace | null>(null);
+  const [activeWorkspaces, setActiveWorkspaces] = useState<Workspace[]>([]);
+  const activeWorkspace = activeWorkspaces.length > 0 ? activeWorkspaces[0] : null;
 
   const fetchWorkspacesData = async () => {
     try {
       const list = await getWorkspaces();
       setWorkspaces(list);
-      const active = await getActiveWorkspace();
-      setActiveWorkspace(active);
+      const activeList = await getActiveWorkspaces();
+      setActiveWorkspaces(activeList);
     } catch (err) {
       console.error('Failed to load workspace information', err);
     }
@@ -53,6 +56,26 @@ export default function App() {
       await fetchWorkspacesData();
     } catch (err) {
       console.error('Failed to activate workspace', err);
+      alert(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  const handleDeactivateWorkspace = async (id: string) => {
+    try {
+      await deactivateWorkspace(id);
+      await fetchWorkspacesData();
+    } catch (err) {
+      console.error('Failed to deactivate workspace', err);
+      alert(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  const handleUnregisterWorkspace = async (id: string) => {
+    try {
+      await unregisterWorkspace(id);
+      await fetchWorkspacesData();
+    } catch (err) {
+      console.error('Failed to unregister workspace', err);
       alert(err instanceof Error ? err.message : String(err));
     }
   };
@@ -87,8 +110,11 @@ export default function App() {
                 <WorkspacesView
                   workspaces={workspaces}
                   activeWorkspace={activeWorkspace}
+                  activeWorkspaces={activeWorkspaces}
                   onRegister={handleRegisterWorkspace}
                   onActivate={handleActivateWorkspace}
+                  onDeactivate={handleDeactivateWorkspace}
+                  onUnregister={handleUnregisterWorkspace}
                 />
               )}
               {activeTab === 'mcp' && (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAuditLogs } from '../services/tauriService';
+import { getAuditLogs, clearAuditLogs } from '../services/tauriService';
 
 export default function LogsView() {
   const [logs, setLogs] = useState<string[]>([]);
@@ -30,6 +30,19 @@ export default function LogsView() {
         </div>
         <div className="flex space-x-2">
           <button
+            onClick={async () => {
+              try {
+                await clearAuditLogs();
+                setLogs([]);
+              } catch (e) {
+                console.error(e);
+              }
+            }}
+            className="py-1.5 px-3 rounded-lg border border-border-subtle hover:bg-surface-secondary text-text-secondary text-xs font-medium transition duration-150 cursor-pointer"
+          >
+            Clear Logs
+          </button>
+          <button
             onClick={() => setIsPaused(!isPaused)}
             className={`py-1.5 px-3 rounded-lg border border-border-subtle text-xs font-medium transition duration-150 cursor-pointer ${
               isPaused
@@ -43,7 +56,7 @@ export default function LogsView() {
       </div>
 
       <div className="flex-1 bg-surface-primary border border-border-subtle rounded-xl p-4 font-mono text-xs overflow-y-auto flex flex-col shadow-inner min-h-[400px]">
-        {logs.length === 0 ? (
+        {logs.length === 0 || (logs.length === 1 && logs[0].includes('empty')) ? (
           <div className="text-text-muted text-center py-20">
             No audit logs captured yet. Try accessing workspace files to trigger events.
           </div>

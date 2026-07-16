@@ -21,7 +21,7 @@
   --color-info-main: #06b6d4;
 
   /* Typography */
-  --font-sans: 'Geist', 'Inter', system-ui, sans-serif;
+  --font-sans: 'Outfit', 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
   --text-xs: 12px;
@@ -77,6 +77,43 @@
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.28);
   --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.45);
   --shadow-glow: 0 0 30px rgba(124, 92, 255, 0.18);
+}
+
+.material-symbols-rounded {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'liga';
+}
+
+:root {
+  --md-sys-color-primary: var(--color-accent-primary);
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: rgba(124, 92, 255, 0.15);
+  --md-sys-color-on-primary-container: var(--color-accent-hover);
+  --md-sys-color-secondary: var(--color-text-secondary);
+  --md-sys-color-on-secondary: #000000;
+  --md-sys-color-surface: var(--color-surface-primary);
+  --md-sys-color-on-surface: var(--color-text-primary);
+  --md-sys-color-surface-container: var(--color-surface-secondary);
+  --md-sys-color-surface-container-high: var(--color-surface-elevated);
+  --md-sys-color-outline: var(--color-border-subtle);
+  --md-sys-color-outline-variant: var(--color-border-subtle);
+  --md-sys-color-error: var(--color-danger-main);
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-typescale-body-large-font: var(--font-sans);
+  --md-sys-typescale-label-large-font: var(--font-sans);
 }
 
 html,

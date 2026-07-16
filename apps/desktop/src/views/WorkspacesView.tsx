@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { CheckCircle2, Plus, X, FolderOpen } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Workspace } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { pickDirectory } from '../services/tauriService';
@@ -8,35 +7,101 @@ import CopyButton from '../components/CopyButton';
 interface WorkspacesViewProps {
   workspaces: Workspace[];
   activeWorkspace: Workspace | null;
+  activeWorkspaces: Workspace[];
   onRegister: (name: string, path: string) => Promise<void>;
   onActivate: (id: string) => Promise<void>;
+  onDeactivate: (id: string) => Promise<void>;
+  onUnregister: (id: string) => Promise<void>;
+}
+
+function cleanPath(p: string): string {
+  if (p.startsWith('\\\\?\\')) return p.slice(4);
+  if (p.startsWith('//?/')) return p.slice(4);
+  return p;
 }
 
 export default function WorkspacesView({
   workspaces,
-  activeWorkspace,
+  activeWorkspaces,
   onRegister,
   onActivate,
+  onDeactivate,
+  onUnregister,
 }: WorkspacesViewProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [name, setName] = useState('');
   const [path, setPath] = useState('');
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [pathError, setPathError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    setError(null);
+    setNameError(null);
+    setPathError(null);
+  }, [name, path, isModalOpen]);
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !path) return;
-    await onRegister(name, path);
-    setName('');
-    setPath('');
-    setIsModalOpen(false);
+    setError(null);
+    setNameError(null);
+    setPathError(null);
+
+    const trimmedName = name.trim();
+    const trimmedPath = path.trim();
+    let hasError = false;
+
+    if (!trimmedName) {
+      setNameError('Workspace name is required.');
+      hasError = true;
+    } else if (trimmedName.length < 2) {
+      setNameError('Workspace name must be at least 2 characters.');
+      hasError = true;
+    }
+
+    if (!trimmedPath) {
+      setPathError('Workspace directory path is required.');
+      hasError = true;
+    }
+
+    if (hasError) return;
+
+    // Verify no duplicate paths registered
+    const isDuplicatePath = workspaces.some(
+      (ws) => cleanPath(ws.root).toLowerCase() === cleanPath(trimmedPath).toLowerCase(),
+    );
+    if (isDuplicatePath) {
+      setPathError('A workspace with this folder path is already registered.');
+      return;
+    }
+
+    // Verify no duplicate names registered
+    const isDuplicateName = workspaces.some(
+      (ws) => ws.name.toLowerCase() === trimmedName.toLowerCase(),
+    );
+    if (isDuplicateName) {
+      setNameError('A workspace with this name is already registered.');
+      return;
+    }
+
+    onRegister(trimmedName, trimmedPath)
+      .then(() => {
+        setName('');
+        setPath('');
+        setIsModalOpen(false);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : String(err));
+      });
   };
 
   const handleBrowse = async () => {
     const selected = await pickDirectory();
     if (selected) {
-      setPath(selected);
+      const cleaned = cleanPath(selected);
+      setPath(cleaned);
       if (!name) {
-        const parts = selected.split(/[/\\]/);
+        const parts = cleaned.split(/[/\\]/);
         const lastPart = parts[parts.length - 1];
         if (lastPart) {
           setName(lastPart);
@@ -58,19 +123,19 @@ export default function WorkspacesView({
           onClick={() => setIsModalOpen(true)}
           className="bg-accent-primary hover:bg-accent-hover text-white text-xs font-semibold py-2 px-4 rounded-lg flex items-center space-x-1.5 transition duration-150 cursor-pointer"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <span className="material-symbols-rounded text-sm">add</span>
           <span>Register Workspace</span>
         </button>
       </div>
 
       <div className="bg-surface-primary border border-border-subtle rounded-xl overflow-hidden shadow-sm">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full text-left border-collapse table-fixed">
           <thead>
             <tr className="border-b border-border-subtle bg-surface-secondary/35 text-[11px] font-bold text-text-muted uppercase tracking-wider">
-              <th className="px-6 py-3.5">Workspace Name</th>
-              <th className="px-6 py-3.5">Path</th>
-              <th className="px-6 py-3.5">Status</th>
-              <th className="px-6 py-3.5 text-right">Actions</th>
+              <th className="px-6 py-3.5 w-1/4">Workspace Name</th>
+              <th className="px-6 py-3.5 w-2/5">Path</th>
+              <th className="px-6 py-3.5 w-1/6">Status</th>
+              <th className="px-6 py-3.5 w-1/6 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="text-sm divide-y divide-border-subtle">
@@ -82,23 +147,30 @@ export default function WorkspacesView({
               </tr>
             ) : (
               workspaces.map((ws) => {
-                const isActive = activeWorkspace?.id === ws.id;
+                const isActive = activeWorkspaces.some((w) => w.id === ws.id);
+                const cleanedRoot = cleanPath(ws.root);
                 return (
                   <tr key={ws.id} className={isActive ? 'bg-surface-secondary/20' : ''}>
-                    <td className="px-6 py-4 font-semibold text-text-primary flex items-center space-x-2">
-                      <span>{ws.name}</span>
-                      {isActive && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-success-main animate-pulse" />
-                      )}
+                    <td className="px-6 py-4 font-semibold text-text-primary">
+                      <div className="flex items-center space-x-2 truncate">
+                        <span className="truncate">{ws.name}</span>
+                        {isActive && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-success-main animate-pulse" />
+                        )}
+                      </div>
                     </td>
-                    <td className="px-6 py-4 font-mono text-xs text-text-secondary truncate max-w-[300px] flex items-center space-x-2">
-                      <span className="truncate">{ws.root}</span>
-                      <CopyButton value={ws.root} />
+                    <td className="px-6 py-4 font-mono text-xs text-text-secondary">
+                      <div className="flex items-center space-x-2 truncate">
+                        <span className="truncate max-w-[280px]" title={cleanedRoot}>
+                          {cleanedRoot}
+                        </span>
+                        <CopyButton value={cleanedRoot} />
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       {isActive ? (
                         <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-bold bg-success-main/10 text-success-main">
-                          <CheckCircle2 className="w-3 h-3" />
+                          <span className="material-symbols-rounded text-xs">check_circle</span>
                           <span>Active</span>
                         </span>
                       ) : (
@@ -108,14 +180,34 @@ export default function WorkspacesView({
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {!isActive && (
+                      <div className="flex items-center justify-end space-x-3.5">
+                        {isActive ? (
+                          <button
+                            onClick={() => onDeactivate(ws.id)}
+                            className="text-xs text-text-muted hover:text-text-primary font-semibold transition duration-150 cursor-pointer"
+                          >
+                            Deactivate
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => onActivate(ws.id)}
+                            className="text-xs text-accent-primary hover:text-accent-hover font-semibold transition duration-150 cursor-pointer"
+                          >
+                            Activate
+                          </button>
+                        )}
                         <button
-                          onClick={() => onActivate(ws.id)}
-                          className="text-xs text-accent-primary hover:text-accent-hover font-semibold transition duration-150 cursor-pointer"
+                          onClick={() => {
+                            if (confirm(`Are you sure you want to unregister "${ws.name}"?`)) {
+                              onUnregister(ws.id);
+                            }
+                          }}
+                          className="text-text-muted hover:text-danger-main transition duration-150 cursor-pointer"
+                          title="Unregister Workspace"
                         >
-                          Activate
+                          <span className="material-symbols-rounded text-sm">delete</span>
                         </button>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -139,63 +231,57 @@ export default function WorkspacesView({
               {/* Header */}
               <div className="flex justify-between items-center border-b border-border-subtle pb-3.5 mb-5">
                 <div className="flex items-center space-x-2">
-                  <FolderOpen className="w-4 h-4 text-accent-primary" />
+                  <span className="material-symbols-rounded text-accent-primary">folder</span>
                   <h3 className="font-semibold text-text-primary">Register Workspace</h3>
                 </div>
                 <button
                   onClick={() => setIsModalOpen(false)}
                   className="p-1 rounded-lg hover:bg-surface-secondary text-text-muted hover:text-text-primary transition cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <span className="material-symbols-rounded text-sm">close</span>
                 </button>
               </div>
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="ws-name"
-                    className="block text-xs font-semibold text-text-secondary mb-1.5"
-                  >
-                    Workspace Name
-                  </label>
-                  <input
-                    id="ws-name"
-                    type="text"
-                    required
+                <div className="flex flex-col space-y-1">
+                  <md-outlined-text-field
+                    label="Workspace Name"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Inventory System"
-                    className="w-full px-3 py-2 text-sm bg-bg-app border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-accent-primary focus:border-accent-primary text-text-primary"
-                  />
+                    onInput={(e) => setName((e.target as HTMLInputElement).value)}
+                    error={!!nameError || undefined}
+                    errorText={nameError || undefined}
+                    style={{ width: '100%' }}
+                  ></md-outlined-text-field>
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="ws-path"
-                    className="block text-xs font-semibold text-text-secondary mb-1.5"
-                  >
-                    Absolute Path
-                  </label>
-                  <div className="flex space-x-2">
-                    <input
-                      id="ws-path"
-                      type="text"
-                      required
-                      value={path}
-                      onChange={(e) => setPath(e.target.value)}
-                      placeholder="e.g. C:\Projects\InventorySystem"
-                      className="flex-1 px-3 py-2 text-sm bg-bg-app border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-accent-primary focus:border-accent-primary text-text-primary font-mono text-xs"
-                    />
+                <div className="flex flex-col space-y-1">
+                  <div className="flex items-end space-x-2">
+                    <div className="flex-1">
+                      <md-outlined-text-field
+                        label="Absolute Path"
+                        value={path}
+                        onInput={(e) => setPath((e.target as HTMLInputElement).value)}
+                        error={!!pathError || undefined}
+                        errorText={pathError || undefined}
+                        style={{ width: '100%' }}
+                      ></md-outlined-text-field>
+                    </div>
                     <button
                       type="button"
                       onClick={handleBrowse}
-                      className="px-3 py-2 bg-surface-secondary border border-border-subtle rounded-lg hover:bg-border-subtle text-text-primary text-xs font-medium transition cursor-pointer"
+                      className="px-3 py-2 bg-surface-secondary border border-border-subtle rounded-lg hover:bg-border-subtle text-text-primary text-xs font-medium transition cursor-pointer h-[56px]"
                     >
                       Browse...
                     </button>
                   </div>
                 </div>
+
+                {error && (
+                  <div className="p-2.5 bg-danger-main/10 border border-danger-main/20 text-danger-main rounded-lg text-xs font-medium">
+                    {error}
+                  </div>
+                )}
 
                 <div className="pt-2 flex space-x-3">
                   <button

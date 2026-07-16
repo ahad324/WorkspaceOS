@@ -2,14 +2,15 @@
 
 use index_engine::WorkspaceIndexer;
 use search_engine::SearchManager;
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use workspace_engine::{WorkspaceMetadata, WorkspaceRegistry};
 
 struct AppState {
     registry: WorkspaceRegistry,
-    indexer: Mutex<Option<Arc<WorkspaceIndexer>>>,
-    searcher: Mutex<Option<Arc<SearchManager>>>,
+    indexers: Mutex<HashMap<String, Arc<WorkspaceIndexer>>>,
+    searchers: Mutex<HashMap<String, Arc<SearchManager>>>,
     tunnel_mgr: tunnel_manager::TunnelManager,
 }
 
@@ -43,6 +44,18 @@ fn register_workspace(
 }
 
 #[tauri::command]
+fn unregister_workspace(state: tauri::State<'_, AppState>, id: String) -> Result<(), String> {
+    state
+        .registry
+        .unregister_workspace(&id)
+        .map_err(|e| e.to_string())?;
+
+    state.indexers.lock().unwrap().remove(&id);
+    state.searchers.lock().unwrap().remove(&id);
+    Ok(())
+}
+
+#[tauri::command]
 fn activate_workspace(state: tauri::State<'_, AppState>, id: String) -> Result<(), String> {
     state
         .registry
@@ -51,7 +64,9 @@ fn activate_workspace(state: tauri::State<'_, AppState>, id: String) -> Result<(
 
     let ws = state
         .registry
-        .get_active_workspace()
+        .get_active_workspaces()
+        .into_iter()
+        .find(|w| w.metadata.id == id)
         .ok_or_else(|| "Workspace activated but could not be loaded".to_string())?;
 
     let event_bus = state.registry.event_bus.clone();
@@ -59,25 +74,33 @@ fn activate_workspace(state: tauri::State<'_, AppState>, id: String) -> Result<(
     let indexer = Arc::new(WorkspaceIndexer::new(&ws, event_bus.clone())?);
     let searcher = Arc::new(SearchManager::new(&ws, event_bus)?);
 
-    // Run initial indexing in background so the UI loads instantly
+    // Run initial indexing in background
     let indexer_bg = indexer.clone();
     let searcher_bg = searcher.clone();
     let ws_bg = ws.clone();
     tokio::spawn(async move {
-        if let Err(e) = indexer_bg.perform_initial_index(&ws_bg) {
-            tracing::error!("Failed to index workspace: {}", e);
-        }
-        if let Err(e) = searcher_bg.index_entire_workspace_fts() {
-            tracing::error!("Failed to FTS index workspace: {}", e);
-        }
+        let _ = indexer_bg.perform_initial_index(&ws_bg);
+        let _ = searcher_bg.index_entire_workspace_fts();
     });
 
-    // Start watches
     indexer.clone().start_incremental_listener();
     searcher.clone().start_incremental_listener();
 
-    *state.indexer.lock().unwrap() = Some(indexer);
-    *state.searcher.lock().unwrap() = Some(searcher);
+    state.indexers.lock().unwrap().insert(id.clone(), indexer);
+    state.searchers.lock().unwrap().insert(id, searcher);
+
+    Ok(())
+}
+
+#[tauri::command]
+fn deactivate_workspace(state: tauri::State<'_, AppState>, id: String) -> Result<(), String> {
+    state
+        .registry
+        .deactivate_workspace(&id)
+        .map_err(|e| e.to_string())?;
+
+    state.indexers.lock().unwrap().remove(&id);
+    state.searchers.lock().unwrap().remove(&id);
 
     Ok(())
 }
@@ -90,15 +113,30 @@ fn get_active_workspace(
 }
 
 #[tauri::command]
+fn get_active_workspaces(
+    state: tauri::State<'_, AppState>,
+) -> Result<Vec<WorkspaceMetadata>, String> {
+    Ok(state
+        .registry
+        .get_active_workspaces()
+        .into_iter()
+        .map(|w| w.metadata)
+        .collect())
+}
+
+#[tauri::command]
 fn search_paths(
     state: tauri::State<'_, AppState>,
     query: String,
 ) -> Result<Vec<index_engine::FileRecord>, String> {
-    let searcher_opt = state.searcher.lock().unwrap();
-    let searcher = searcher_opt
-        .as_ref()
-        .ok_or("No active search manager found")?;
-    searcher.search_paths(&query)
+    let mut all_results = Vec::new();
+    let searchers = state.searchers.lock().unwrap();
+    for searcher in searchers.values() {
+        if let Ok(res) = searcher.search_paths(&query) {
+            all_results.extend(res);
+        }
+    }
+    Ok(all_results)
 }
 
 #[tauri::command]
@@ -106,11 +144,14 @@ fn search_symbols(
     state: tauri::State<'_, AppState>,
     query: String,
 ) -> Result<Vec<index_engine::SymbolRecord>, String> {
-    let searcher_opt = state.searcher.lock().unwrap();
-    let searcher = searcher_opt
-        .as_ref()
-        .ok_or("No active search manager found")?;
-    searcher.search_symbols(&query)
+    let mut all_results = Vec::new();
+    let searchers = state.searchers.lock().unwrap();
+    for searcher in searchers.values() {
+        if let Ok(res) = searcher.search_symbols(&query) {
+            all_results.extend(res);
+        }
+    }
+    Ok(all_results)
 }
 
 #[tauri::command]
@@ -118,11 +159,14 @@ fn search_code(
     state: tauri::State<'_, AppState>,
     query: String,
 ) -> Result<Vec<search_engine::CodeSearchResult>, String> {
-    let searcher_opt = state.searcher.lock().unwrap();
-    let searcher = searcher_opt
-        .as_ref()
-        .ok_or("No active search manager found")?;
-    searcher.search_code(&query)
+    let mut all_results = Vec::new();
+    let searchers = state.searchers.lock().unwrap();
+    for searcher in searchers.values() {
+        if let Ok(res) = searcher.search_code(&query) {
+            all_results.extend(res);
+        }
+    }
+    Ok(all_results)
 }
 
 #[tauri::command]
@@ -131,16 +175,17 @@ fn generate_context(
     query: String,
     token_budget: Option<usize>,
 ) -> Result<context_engine::ContextProfile, String> {
-    let searcher_opt = state.searcher.lock().unwrap();
-    let searcher = searcher_opt
-        .as_ref()
-        .ok_or("No active search manager found")?;
-    let ws = state
-        .registry
-        .get_active_workspace()
+    let searchers = state.searchers.lock().unwrap();
+    let searcher = searchers
+        .values()
+        .next()
+        .ok_or("No active workspace found")?;
+    let active_workspaces = state.registry.get_active_workspaces();
+    let ws = active_workspaces
+        .first()
         .ok_or("No active workspace loaded")?;
     context_engine::ContextEngine::assemble_context(
-        &ws,
+        ws,
         searcher,
         &query,
         token_budget.unwrap_or(2000),
@@ -171,11 +216,11 @@ fn stop_tunnel(state: tauri::State<'_, AppState>) -> Result<(), String> {
 fn list_plugins(
     state: tauri::State<'_, AppState>,
 ) -> Result<Vec<plugin_system::PluginMetadata>, String> {
-    let ws = state
-        .registry
-        .get_active_workspace()
-        .ok_or("No active workspace loaded")?;
-    Ok(plugin_system::PluginHost::list_plugins(&ws))
+    if let Some(ws) = state.registry.get_active_workspace() {
+        Ok(plugin_system::PluginHost::list_plugins(&ws))
+    } else {
+        Ok(Vec::new())
+    }
 }
 
 #[tauri::command]
@@ -187,19 +232,12 @@ fn get_diagnostics() -> Result<workspace_engine::PerformanceDiagnostics, String>
 fn get_workspace_config(
     state: tauri::State<'_, AppState>,
 ) -> Result<workspace_engine::WorkspaceConfig, String> {
-    let ws = state
+    let active = state
         .registry
         .get_active_workspace()
-        .ok_or("No active workspace loaded")?;
-    let config_file = ws.metadata.root.join(".workspaceos.toml");
-    if config_file.exists() {
-        let content = std::fs::read_to_string(&config_file).map_err(|e| e.to_string())?;
-        let config: workspace_engine::WorkspaceConfig =
-            toml::from_str(&content).map_err(|e| e.to_string())?;
-        Ok(config)
-    } else {
-        Ok(ws.config)
-    }
+        .ok_or_else(|| "No active workspace loaded".to_string())?;
+    let config = active.read_config().map_err(|e| e.to_string())?;
+    Ok(config)
 }
 
 #[tauri::command]
@@ -207,37 +245,33 @@ fn update_workspace_config(
     state: tauri::State<'_, AppState>,
     config: workspace_engine::WorkspaceConfig,
 ) -> Result<(), String> {
-    let ws = state
+    let active = state
         .registry
         .get_active_workspace()
-        .ok_or("No active workspace loaded")?;
-    let config_file = ws.metadata.root.join(".workspaceos.toml");
-    let content = toml::to_string_pretty(&config).map_err(|e| e.to_string())?;
-    std::fs::write(&config_file, content).map_err(|e| e.to_string())?;
-    Ok(())
+        .ok_or_else(|| "No active workspace loaded".to_string())?;
+    active.write_config(&config).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn pick_directory() -> Result<Option<String>, String> {
-    let dir = rfd::FileDialog::new().pick_folder();
-    Ok(dir.map(|p| p.to_string_lossy().into_owned()))
+async fn pick_directory() -> Result<Option<String>, String> {
+    use rfd::AsyncFileDialog;
+    let file_handle = AsyncFileDialog::new().pick_folder().await;
+    Ok(file_handle.map(|f| f.path().to_string_lossy().into_owned()))
 }
 
 #[tauri::command]
 fn get_audit_logs(state: tauri::State<'_, AppState>) -> Result<Vec<String>, String> {
-    let ws = state
-        .registry
-        .get_active_workspace()
-        .ok_or("No active workspace loaded")?;
-    let log_path = ws.metadata.root.join(".workspaceos").join("audit.log");
-    if log_path.exists() {
-        let content = std::fs::read_to_string(&log_path).map_err(|e| e.to_string())?;
-        let lines: Vec<String> = content
-            .lines()
-            .rev()
-            .take(100)
-            .map(|s| s.to_string())
-            .collect();
+    use std::fs::read_to_string;
+    let active = state.registry.get_active_workspace();
+    if let Some(ws) = active {
+        let audit_log = ws.metadata.root.join(".workspaceos").join("audit.log");
+        if !audit_log.exists() {
+            return Ok(vec![
+                "[INFO] Audit log file is empty or does not exist yet.".to_string(),
+            ]);
+        }
+        let content = read_to_string(audit_log).map_err(|e| e.to_string())?;
+        let lines: Vec<String> = content.lines().map(|s| s.to_string()).collect();
         Ok(lines)
     } else {
         Ok(vec![
@@ -246,21 +280,35 @@ fn get_audit_logs(state: tauri::State<'_, AppState>) -> Result<Vec<String>, Stri
     }
 }
 
+#[tauri::command]
+fn clear_audit_logs(state: tauri::State<'_, AppState>) -> Result<(), String> {
+    use std::fs::write;
+    let active = state.registry.get_active_workspace();
+    if let Some(ws) = active {
+        let audit_log = ws.metadata.root.join(".workspaceos").join("audit.log");
+        if audit_log.exists() {
+            write(audit_log, "").map_err(|e| e.to_string())?;
+        }
+    }
+    Ok(())
+}
+
 fn main() {
     let registry = WorkspaceRegistry::new();
-    let indexer = Mutex::new(None);
-    let searcher = Mutex::new(None);
+    let indexers = Mutex::new(HashMap::new());
+    let searchers = Mutex::new(HashMap::new());
     let tunnel_mgr = tunnel_manager::TunnelManager::new("Cloudflare");
 
     let state = AppState {
         registry,
-        indexer,
-        searcher,
+        indexers,
+        searchers,
         tunnel_mgr,
     };
 
-    // If there is already an active workspace on startup, boot up the indexer/searcher
-    if let Some(ws) = state.registry.get_active_workspace() {
+    // If there are active workspaces on startup, boot up their indexers/searchers
+    let active_workspaces = state.registry.get_active_workspaces();
+    for ws in active_workspaces {
         let event_bus = state.registry.event_bus.clone();
         if let Ok(idx) = WorkspaceIndexer::new(&ws, event_bus.clone()) {
             if let Ok(sch) = SearchManager::new(&ws, event_bus) {
@@ -278,8 +326,16 @@ fn main() {
                 idx.clone().start_incremental_listener();
                 sch.clone().start_incremental_listener();
 
-                *state.indexer.lock().unwrap() = Some(idx);
-                *state.searcher.lock().unwrap() = Some(sch);
+                state
+                    .indexers
+                    .lock()
+                    .unwrap()
+                    .insert(ws.metadata.id.clone(), idx);
+                state
+                    .searchers
+                    .lock()
+                    .unwrap()
+                    .insert(ws.metadata.id.clone(), sch);
             }
         }
     }
@@ -290,8 +346,11 @@ fn main() {
             get_runtime_status,
             get_workspaces,
             register_workspace,
+            unregister_workspace,
             activate_workspace,
+            deactivate_workspace,
             get_active_workspace,
+            get_active_workspaces,
             search_paths,
             search_symbols,
             search_code,
@@ -303,7 +362,8 @@ fn main() {
             get_workspace_config,
             update_workspace_config,
             pick_directory,
-            get_audit_logs
+            get_audit_logs,
+            clear_audit_logs
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

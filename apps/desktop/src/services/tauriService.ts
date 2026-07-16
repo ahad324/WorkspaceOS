@@ -41,6 +41,22 @@ export async function activateWorkspace(id: string): Promise<void> {
   return invoke<void>('activate_workspace', { id });
 }
 
+export async function deactivateWorkspace(id: string): Promise<void> {
+  if (!isTauri) {
+    console.log(`Mock deactivating workspace: ${id}`);
+    return;
+  }
+  return invoke<void>('deactivate_workspace', { id });
+}
+
+export async function unregisterWorkspace(id: string): Promise<void> {
+  if (!isTauri) {
+    console.log(`Mock unregistering workspace: ${id}`);
+    return;
+  }
+  return invoke<void>('unregister_workspace', { id });
+}
+
 export async function getActiveWorkspace(): Promise<Workspace | null> {
   if (!isTauri) {
     return {
@@ -52,6 +68,21 @@ export async function getActiveWorkspace(): Promise<Workspace | null> {
     };
   }
   return invoke<Workspace | null>('get_active_workspace');
+}
+
+export async function getActiveWorkspaces(): Promise<Workspace[]> {
+  if (!isTauri) {
+    return [
+      {
+        id: 'workspace-0',
+        name: 'WorkspaceOS (Mock)',
+        root: 'G:\\Ahad\\DesktopApps\\WorkspaceOS',
+        created_at: Date.now() / 1000,
+        last_modified: Date.now() / 1000,
+      },
+    ];
+  }
+  return invoke<Workspace[]>('get_active_workspaces');
 }
 
 export interface TunnelStatus {
@@ -196,4 +227,12 @@ export async function getAuditLogs(): Promise<string[]> {
     ];
   }
   return invoke<string[]>('get_audit_logs');
+}
+
+export async function clearAuditLogs(): Promise<void> {
+  if (!isTauri) {
+    console.log('Mock cleared audit logs');
+    return;
+  }
+  return invoke<void>('clear_audit_logs');
 }
