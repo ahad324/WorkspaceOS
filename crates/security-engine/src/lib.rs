@@ -54,7 +54,12 @@ impl SecurityEvaluator {
             .unwrap_or_else(|_| ws.metadata.root.clone());
 
         // Early reject absolute or drive/root-relative path escapes
-        let has_root = path.components().any(|c| matches!(c, std::path::Component::RootDir | std::path::Component::Prefix(_)));
+        let has_root = path.components().any(|c| {
+            matches!(
+                c,
+                std::path::Component::RootDir | std::path::Component::Prefix(_)
+            )
+        });
         if has_root && !path.starts_with(&ws.metadata.root) && !path.starts_with(&canonical_root) {
             return Err(format!(
                 "Security Violation: Root-relative or absolute path outside workspace containment boundary: {:?}",

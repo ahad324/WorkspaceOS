@@ -49,5 +49,106 @@ export async function getActiveWorkspace(): Promise<Workspace | null> {
       last_modified: Date.now() / 1000,
     };
   }
-  return invoke<Workspace | null>('get_active_workspace');
+}
+
+export interface TunnelStatus {
+  state: string;
+  public_url: string | null;
+  provider: string;
+  latency_ms: number;
+  reconnect_count: number;
+}
+
+export interface PluginMetadata {
+  name: string;
+  version: string;
+  description: string;
+  capabilities: string[];
+}
+
+export interface PerformanceDiagnostics {
+  cpu_usage_percent: number;
+  memory_rss_bytes: number;
+  sqlite_cache_hit_ratio: number;
+  sqlite_active_connections: number;
+  tantivy_document_count: number;
+  active_fs_watchers: number;
+  total_indexing_duration_ms: number;
+}
+
+export interface ContextSnippet {
+  path: string;
+  content: string;
+  score: number;
+  reason: string;
+}
+
+export interface ContextProfile {
+  intent: string;
+  snippets: ContextSnippet[];
+  total_tokens: number;
+}
+
+export async function startTunnel(): Promise<string> {
+  if (!isTauri) {
+    return 'https://mock.workspaceos.dev/mcp';
+  }
+  return invoke<string>('start_tunnel');
+}
+
+export async function stopTunnel(): Promise<void> {
+  if (!isTauri) {
+    return;
+  }
+  return invoke<void>('stop_tunnel');
+}
+
+export async function listPlugins(): Promise<PluginMetadata[]> {
+  if (!isTauri) {
+    return [
+      {
+        name: 'git-companion',
+        version: '1.0.0',
+        description: 'Exposes Git status, commit, and history tools',
+        capabilities: ['git.read', 'git.write'],
+      },
+    ];
+  }
+  return invoke<PluginMetadata[]>('list_plugins');
+}
+
+export async function getDiagnostics(): Promise<PerformanceDiagnostics> {
+  if (!isTauri) {
+    return {
+      cpu_usage_percent: 0.05,
+      memory_rss_bytes: 35000000,
+      sqlite_cache_hit_ratio: 0.99,
+      sqlite_active_connections: 1,
+      tantivy_document_count: 50,
+      active_fs_watchers: 1,
+      total_indexing_duration_ms: 100,
+    };
+  }
+  return invoke<PerformanceDiagnostics>('get_diagnostics');
+}
+
+export async function generateContext(
+  query: string,
+  tokenBudget?: number,
+): Promise<ContextProfile> {
+  if (!isTauri) {
+    return {
+      intent: 'ExplainCode',
+      snippets: [
+        {
+          path: 'src/lib.rs',
+          content: 'fn main() {}',
+          score: 10.0,
+          reason: 'Mock result',
+        },
+      ],
+      total_tokens: 15,
+    };
+  }
+  return invoke<ContextProfile>('generate_context', { query, tokenBudget });
 }

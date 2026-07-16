@@ -1,4 +1,5 @@
 pub mod config;
+pub mod diagnostics;
 pub mod event_bus;
 pub mod ignore;
 pub mod state;
@@ -14,6 +15,7 @@ use tracing::{info, warn};
 use uuid::Uuid;
 
 pub use config::WorkspaceConfig;
+pub use diagnostics::PerformanceDiagnostics;
 pub use event_bus::{FsEvent, WorkspaceEvent, WorkspaceEventBus};
 pub use ignore::IgnoreMatcher;
 pub use state::WorkspaceState;

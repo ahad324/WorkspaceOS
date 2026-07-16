@@ -5,5 +5,7 @@ edition = "2021"
 
 [dependencies]
 serde = { workspace = true }
+serde_json = { workspace = true }
 tracing = { workspace = true }
 workspace-engine = { path = "../workspace-engine" }
+uuid = { version = "1.12.1", features = ["v4"] }

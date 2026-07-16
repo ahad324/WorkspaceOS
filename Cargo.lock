@@ -898,6 +898,7 @@ dependencies = [
 name = "desktop-tauri-app"
 version = "0.1.0"
 dependencies = [
+ "context-engine",
  "index-engine",
  "mcp-runtime",
  "plugin-system",
@@ -3073,7 +3074,9 @@ name = "plugin-system"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "serde_json",
  "tracing",
+ "uuid",
  "workspace-engine",
 ]
 
@@ -4906,6 +4909,7 @@ name = "tunnel-manager"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "serde_json",
  "tokio",
  "tracing",
 ]

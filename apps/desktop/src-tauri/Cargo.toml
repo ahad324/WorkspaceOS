@@ -19,6 +19,7 @@ search-engine = { path = "../../../crates/search-engine" }
 mcp-runtime = { path = "../../../crates/mcp-runtime" }
 tunnel-manager = { path = "../../../crates/tunnel-manager" }
 plugin-system = { path = "../../../crates/plugin-system" }
+context-engine = { path = "../../../crates/context-engine" }
 
 [build-dependencies]
 tauri-build = { version = "2.2.0", features = [] }

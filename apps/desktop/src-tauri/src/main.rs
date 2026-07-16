@@ -10,6 +10,7 @@ struct AppState {
     registry: WorkspaceRegistry,
     indexer: Mutex<Option<Arc<WorkspaceIndexer>>>,
     searcher: Mutex<Option<Arc<SearchManager>>>,
+    tunnel_mgr: tunnel_manager::TunnelManager,
 }
 
 #[tauri::command]
@@ -124,15 +125,65 @@ fn search_code(
     searcher.search_code(&query)
 }
 
+#[tauri::command]
+fn generate_context(
+    state: tauri::State<'_, AppState>,
+    query: String,
+    token_budget: Option<usize>,
+) -> Result<context_engine::ContextProfile, String> {
+    let searcher_opt = state.searcher.lock().unwrap();
+    let searcher = searcher_opt
+        .as_ref()
+        .ok_or("No active search manager found")?;
+    let ws = state
+        .registry
+        .get_active_workspace()
+        .ok_or("No active workspace loaded")?;
+    context_engine::ContextEngine::assemble_context(
+        &ws,
+        searcher,
+        &query,
+        token_budget.unwrap_or(2000),
+    )
+}
+
+#[tauri::command]
+fn start_tunnel(state: tauri::State<'_, AppState>) -> Result<String, String> {
+    state.tunnel_mgr.start_tunnel()
+}
+
+#[tauri::command]
+fn stop_tunnel(state: tauri::State<'_, AppState>) -> Result<(), String> {
+    state.tunnel_mgr.stop_tunnel()
+}
+
+#[tauri::command]
+fn list_plugins(
+    state: tauri::State<'_, AppState>,
+) -> Result<Vec<plugin_system::PluginMetadata>, String> {
+    let ws = state
+        .registry
+        .get_active_workspace()
+        .ok_or("No active workspace loaded")?;
+    Ok(plugin_system::PluginHost::list_plugins(&ws))
+}
+
+#[tauri::command]
+fn get_diagnostics() -> Result<workspace_engine::PerformanceDiagnostics, String> {
+    Ok(workspace_engine::PerformanceDiagnostics::collect_diagnostics())
+}
+
 fn main() {
     let registry = WorkspaceRegistry::new();
     let indexer = Mutex::new(None);
     let searcher = Mutex::new(None);
+    let tunnel_mgr = tunnel_manager::TunnelManager::new("Cloudflare");
 
     let state = AppState {
         registry,
         indexer,
         searcher,
+        tunnel_mgr,
     };
 
     // If there is already an active workspace on startup, boot up the indexer/searcher
@@ -170,7 +221,12 @@ fn main() {
             get_active_workspace,
             search_paths,
             search_symbols,
-            search_code
+            search_code,
+            generate_context,
+            start_tunnel,
+            stop_tunnel,
+            list_plugins,
+            get_diagnostics
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
