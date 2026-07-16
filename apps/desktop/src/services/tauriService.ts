@@ -1,7 +1,9 @@
 import { invoke } from '@tauri-apps/api/core';
 import { Workspace } from '../types';
 
-const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
+const isTauri =
+  typeof window !== 'undefined' &&
+  ('__TAURI_IPC__' in window || '__TAURI_INTERNALS__' in window || '__TAURI__' in window);
 
 export async function getWorkspaces(): Promise<Workspace[]> {
   if (!isTauri) {
@@ -90,11 +92,11 @@ export interface ContextProfile {
   total_tokens: number;
 }
 
-export async function startTunnel(): Promise<string> {
+export async function startTunnel(provider: string, authToken: string): Promise<string> {
   if (!isTauri) {
-    return 'https://mock.workspaceos.dev/mcp';
+    return `https://${provider.toLowerCase()}.workspaceos.dev/mcp-session`;
   }
-  return invoke<string>('start_tunnel');
+  return invoke<string>('start_tunnel', { provider, authToken });
 }
 
 export async function stopTunnel(): Promise<void> {

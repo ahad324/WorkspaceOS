@@ -15,7 +15,10 @@
     "lint:rust": "cargo clippy --all-targets -- -D warnings",
     "format": "pnpm format:web && pnpm format:rust",
     "format:web": "pnpm --filter desktop format",
-    "format:rust": "cargo fmt --all"
+    "format:rust": "cargo fmt --all",
+    "test": "pnpm test:unit && pnpm test:e2e",
+    "test:unit": "cargo test --workspace",
+    "test:e2e": "cargo test -p e2e-tests"
   },
   "devDependencies": {
     "typescript": "^5.5.0",

@@ -5,13 +5,24 @@ import {
   WorkspaceConfig,
 } from '../services/tauriService';
 import { Shield, Cpu, FolderOpen } from 'lucide-react';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function SettingsView() {
   const [config, setConfig] = useState<WorkspaceConfig | null>(null);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getWorkspaceConfig().then(setConfig).catch(console.error);
+    getWorkspaceConfig()
+      .then((cfg) => {
+        setConfig(cfg);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(String(err));
+        setLoading(false);
+      });
   }, []);
 
   const saveConfig = async (newConfig: WorkspaceConfig) => {
@@ -58,10 +69,21 @@ export default function SettingsView() {
     saveConfig(newConfig);
   };
 
-  if (!config) {
+  if (loading) {
+    return <LoadingSpinner text="Retrieving active workspace configuration..." />;
+  }
+
+  if (error || !config) {
     return (
-      <div className="flex justify-center items-center h-48 text-text-muted text-xs">
-        Loading workspace configuration...
+      <div className="flex flex-col items-center justify-center min-h-[300px] text-center px-4 space-y-4">
+        <div className="p-6 bg-surface-primary border border-border-subtle rounded-2xl max-w-sm shadow-md space-y-3">
+          <Shield className="w-8 h-8 text-accent-primary mx-auto animate-pulse" />
+          <h4 className="text-sm font-semibold text-text-primary">No Active Workspace Bounded</h4>
+          <p className="text-xs text-text-muted leading-relaxed">
+            WorkspaceOS settings are bound to active projects. Please register and activate a
+            workspace to configure performance, rules, and capability constraints.
+          </p>
+        </div>
       </div>
     );
   }
@@ -120,7 +142,7 @@ export default function SettingsView() {
               <button
                 key={profile}
                 onClick={() => handleProfileChange(profile)}
-                className={`py-3 px-4 border rounded-xl flex flex-col items-center justify-center transition duration-150 ${
+                className={`py-3 px-4 border rounded-xl flex flex-col items-center justify-center transition duration-150 cursor-pointer ${
                   config.performance.profile === profile
                     ? 'border-accent-primary bg-accent-primary/5 text-accent-primary font-bold shadow-sm'
                     : 'border-border-subtle hover:bg-surface-secondary text-text-secondary'

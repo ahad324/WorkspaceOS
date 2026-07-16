@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { listPlugins, PluginMetadata } from '../services/tauriService';
 import { Compass } from 'lucide-react';
+import CopyButton from '../components/CopyButton';
 
 interface McpViewProps {
   isMcpRunning: boolean;
@@ -95,12 +96,24 @@ export default function McpView({ isMcpRunning, setIsMcpRunning }: McpViewProps)
 
         <div className="md:col-span-1 space-y-6">
           <div className="p-5 bg-surface-primary border border-border-subtle rounded-xl shadow-sm space-y-4">
-            <h3 className="text-base font-semibold">Client Integration</h3>
+            <div className="flex justify-between items-center">
+              <h3 className="text-base font-semibold">Client Integration</h3>
+              <CopyButton
+                value={`{
+  "mcpServers": {
+    "workspace-os": {
+      "command": "workspaceos-core",
+      "args": ["mcp", "start"]
+    }
+  }
+}`}
+              />
+            </div>
             <p className="text-xs text-text-muted">
               Add this configuration to your Claude Desktop config file to connect to WorkspaceOS:
             </p>
 
-            <pre className="p-3 bg-bg-app border border-border-subtle rounded-lg text-[10px] font-mono overflow-x-auto text-text-secondary select-all">
+            <pre className="p-3 bg-bg-app border border-border-subtle rounded-lg text-[10px] font-mono overflow-x-auto text-text-secondary">
               {`{
   "mcpServers": {
     "workspace-os": {

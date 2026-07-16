@@ -3,6 +3,7 @@ import { CheckCircle2, Plus, X, FolderOpen } from 'lucide-react';
 import { Workspace } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { pickDirectory } from '../services/tauriService';
+import CopyButton from '../components/CopyButton';
 
 interface WorkspacesViewProps {
   workspaces: Workspace[];
@@ -90,8 +91,9 @@ export default function WorkspacesView({
                         <span className="w-1.5 h-1.5 rounded-full bg-success-main animate-pulse" />
                       )}
                     </td>
-                    <td className="px-6 py-4 font-mono text-xs text-text-secondary truncate max-w-[300px]">
-                      {ws.root}
+                    <td className="px-6 py-4 font-mono text-xs text-text-secondary truncate max-w-[300px] flex items-center space-x-2">
+                      <span className="truncate">{ws.root}</span>
+                      <CopyButton value={ws.root} />
                     </td>
                     <td className="px-6 py-4">
                       {isActive ? (

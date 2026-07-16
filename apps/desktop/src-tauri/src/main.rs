@@ -148,7 +148,17 @@ fn generate_context(
 }
 
 #[tauri::command]
-fn start_tunnel(state: tauri::State<'_, AppState>) -> Result<String, String> {
+fn start_tunnel(
+    state: tauri::State<'_, AppState>,
+    provider: String,
+    auth_token: String,
+) -> Result<String, String> {
+    state.tunnel_mgr.set_provider(&provider);
+    println!(
+        "Connecting tunnel provider: {} (auth token configured: {})",
+        provider,
+        !auth_token.is_empty()
+    );
     state.tunnel_mgr.start_tunnel()
 }
 

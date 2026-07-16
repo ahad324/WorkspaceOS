@@ -58,7 +58,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-bg-app text-text-primary overflow-hidden font-sans select-none">
+    <div className="flex h-screen w-screen bg-bg-app text-text-primary overflow-hidden font-sans">
       {/* Navigation Sidebar */}
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isMcpRunning={isMcpRunning} />
 

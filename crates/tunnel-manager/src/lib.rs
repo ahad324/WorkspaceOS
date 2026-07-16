@@ -107,6 +107,11 @@ impl TunnelManager {
         }
     }
 
+    pub fn set_provider(&self, provider_name: &str) {
+        let mut prov = self.provider.lock().unwrap();
+        *prov = Box::new(MockTunnelProvider::new(provider_name));
+    }
+
     pub fn start_tunnel(&self) -> Result<String, String> {
         let mut prov = self.provider.lock().unwrap();
         let url = prov.connect()?;

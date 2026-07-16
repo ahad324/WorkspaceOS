@@ -165,15 +165,7 @@ impl Default for WorkspaceRegistry {
 }
 
 impl WorkspaceRegistry {
-    pub fn new() -> Self {
-        let home = std::env::var("USERPROFILE")
-            .or_else(|_| std::env::var("HOME"))
-            .unwrap_or_else(|_| ".".to_string());
-
-        let registry_path = PathBuf::from(home)
-            .join(".workspaceos")
-            .join("registry.json");
-
+    pub fn new_with_path(registry_path: PathBuf) -> Self {
         let reg = Self {
             registry_path,
             workspaces: RwLock::new(Vec::new()),
@@ -188,8 +180,19 @@ impl WorkspaceRegistry {
                 e
             );
         }
-
         reg
+    }
+
+    pub fn new() -> Self {
+        let home = std::env::var("USERPROFILE")
+            .or_else(|_| std::env::var("HOME"))
+            .unwrap_or_else(|_| ".".to_string());
+
+        let registry_path = PathBuf::from(home)
+            .join(".workspaceos")
+            .join("registry.json");
+
+        Self::new_with_path(registry_path)
     }
 
     pub fn load_registry(&self) -> Result<(), WorkspaceError> {
@@ -248,9 +251,14 @@ impl WorkspaceRegistry {
         name: String,
         root: PathBuf,
     ) -> Result<Workspace, WorkspaceError> {
-        let root_canonical = root.canonicalize().map_err(|e| {
+        let mut root_canonical = root.canonicalize().map_err(|e| {
             WorkspaceError::InvalidPath(format!("Failed to resolve workspace path: {}", e))
         })?;
+
+        let path_str = root_canonical.to_string_lossy().into_owned();
+        if let Some(stripped) = path_str.strip_prefix(r"\\?\") {
+            root_canonical = PathBuf::from(stripped);
+        }
 
         let workspaces_guard = self.workspaces.read();
         for ws in workspaces_guard.iter() {
@@ -341,6 +349,13 @@ impl WorkspaceRegistry {
             .publish(WorkspaceEvent::WorkspaceActivated { id: id.to_string() });
         info!("Workspace activated: {}", id);
         Ok(())
+    }
+
+    pub fn shutdown(&self) {
+        let mut watcher_guard = self.active_watcher.lock();
+        if let Some(watcher) = watcher_guard.take() {
+            watcher.stop();
+        }
     }
 
     pub fn get_active_workspace(&self) -> Option<Workspace> {
