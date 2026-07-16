@@ -73,33 +73,42 @@ graph TD
    ```powershell
    pnpm install
    ```
-2. Build workspace and verify unit tests:
+
+2. Build and verify the suite:
    ```powershell
-   cargo test --workspace
+   pnpm build
    ```
 
-### 💻 Running Development Client
-Boot up the desktop application developer mode:
-```powershell
-pnpm dev
-```
+---
 
-### 🧪 Running Integration Tests
-Execute the end-to-end integration tests:
-```powershell
-cargo test -p e2e-tests
-```
+## 💻 Development Commands
 
-For performance benchmarking:
-```powershell
-cargo bench -p cache_bench
-```
+The workspace is managed through unified package scripts:
+
+| Command | Action |
+|:---|:---|
+| `pnpm dev` | Run the Tauri developer environment (interactive hot reloading desktop client). |
+| `pnpm dev:web` | Run the React dashboard preview in browser mode. |
+| `pnpm build` | Compile the React web application bundle and the Rust binaries. |
+| `pnpm lint` | Run eslint on the frontend and clippy on the backend targets. |
+| `pnpm format` | Run code formatter on all TypeScript, CSS, and Rust codebases. |
+| `pnpm test` | Run the entire unit testing and E2E integration test suite. |
+| `pnpm test:unit` | Run all workspace unit tests (`cargo test --workspace`). |
+| `pnpm test:e2e` | Run only the E2E lifecycle integration tests. |
+
+---
+
+## 🔌 Tunnel Configuration & Remote Sessions
+WorkspaceOS supports dynamic tunnel configuration directly from the runtime dashboard:
+1. **Choose a Tunnel Provider**: Select from **Cloudflare Tunnel**, **ngrok Tunnel**, or **Tailscale Funnel**.
+2. **Apply Authentication**: Paste your secure auth token in the dashboard settings block to provision secure remote sessions.
+3. **Copy endpoint URL**: Click the copy icon next to the generated URL to copy the remote MCP tunnel endpoint with a single click.
 
 ---
 
 ## 📦 Production Packaging
 To build production installers:
 ```powershell
-pnpm --filter desktop tauri build
+pnpm build:tauri
 ```
 For more information, please read the [Release & Deployment Guide](file:///g:/Ahad/DesktopApps/WorkspaceOS/RELEASE-GUIDE.md).
